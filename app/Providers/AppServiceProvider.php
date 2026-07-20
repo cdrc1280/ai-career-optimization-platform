@@ -27,5 +27,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(\App\Models\Resume::class, \App\Policies\ResumePolicy::class);
         Gate::policy(\App\Models\JobPosting::class, \App\Policies\JobPostingPolicy::class);
         Gate::policy(\App\Models\Application::class, \App\Policies\ApplicationPolicy::class);
+        Gate::policy(\App\Models\CoverLetter::class, \App\Policies\CoverLetterPolicy::class);
     }
 }

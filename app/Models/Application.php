@@ -11,7 +11,7 @@ class Application extends Model
 {
     protected $fillable = [
         'user_id', 'job_posting_id', 'resume_version_id', 'cover_letter_id',
-        'status', 'applied_at', 'notes',
+        'status', 'applied_at', 'notes', 'job_url', 'match_score', 'interview_date', 'follow_up_date'
     ];
 
     protected function casts(): array

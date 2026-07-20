@@ -1,166 +1,182 @@
 import axios from 'axios'
 
-const backend = (import.meta.env.VITE_BACKEND_URL as string | undefined) ?? window.location.origin
+// ── Axios instance ─────────────────────────────────────────────────────────────
 const api = axios.create({
-  baseURL: `${backend}/api/v1`,
-  withCredentials: true,
-  headers: { 'Content-Type': 'application/json' }
+    baseURL: '/',
+    withCredentials: true,
+    withXSRFToken: true,
+    headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept':           'application/json',
+        'Content-Type':     'application/json',
+    },
 })
 
-const tokenKey = 'apiAuthToken'
+// ── Token management ──────────────────────────────────────────────────────────
+const TOKEN_KEY = 'acp_token'
+let _token: string | null = localStorage.getItem(TOKEN_KEY)
 
-function setToken(token: string | null) {
-  if (token) {
-    api.defaults.headers.common.Authorization = `Bearer ${token}`
-    localStorage.setItem(tokenKey, token)
-  } else {
-    delete api.defaults.headers.common.Authorization
-    localStorage.removeItem(tokenKey)
-  }
+export function setToken(token: string | null) {
+    _token = token
+    if (token) {
+        localStorage.setItem(TOKEN_KEY, token)
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+    } else {
+        localStorage.removeItem(TOKEN_KEY)
+        delete api.defaults.headers.common['Authorization']
+    }
 }
 
-const storedToken = localStorage.getItem(tokenKey)
-if (storedToken) {
-  setToken(storedToken)
+// Restore token on page load
+if (_token) {
+    api.defaults.headers.common['Authorization'] = `Bearer ${_token}`
 }
 
-function getToken() {
-  return localStorage.getItem(tokenKey)
+export function isLoggedIn(): boolean {
+    return !!_token
 }
 
-// Ensure we request Sanctum CSRF cookie before making stateful requests.
-let csrfPromise: Promise<any> | null = null
+export function clearToken() {
+    setToken(null)
+}
+
+// ── CSRF cookie ───────────────────────────────────────────────────────────────
+let _csrfFetched = false
 async function ensureCsrf() {
-  if (!csrfPromise) {
-    csrfPromise = axios.get(`${backend}/sanctum/csrf-cookie`, { withCredentials: true })
-      .then(r => r)
-      .catch(e => { csrfPromise = null; throw e })
-  }
-  return csrfPromise
-}
-
-async function prepareRequest() {
-  if (!api.defaults.headers.common.Authorization) {
-    // Try to load a stored token first
-    const stored = getToken()
-    if (stored) {
-      setToken(stored)
-      return
-    }
-
-    // Attempt to obtain a token from the backend using the authenticated
-    // session cookie (web login). This lets web logins automatically
-    // provide a Bearer token to JS clients without manual copying.
+    if (_csrfFetched) return
     try {
-      const r = await axios.get(`${backend}/me/token`, { withCredentials: true })
-      if (r.data?.token) {
-        setToken(r.data.token)
-        return
-      }
-    } catch (e) {
-      // ignore and fall back to CSRf fetch for stateful flows
+        await axios.get('/sanctum/csrf-cookie', { withCredentials: true })
+        _csrfFetched = true
+    } catch {
+        // Non-fatal; cookies may already be set
+    }
+}
+
+// ── Response interceptor — auto-clear token on 401 ───────────────────────────
+api.interceptors.response.use(
+    r => r,
+    err => {
+        if (err?.response?.status === 401) {
+            setToken(null)
+        }
+        return Promise.reject(err)
+    }
+)
+
+// ── Auth bootstrap ────────────────────────────────────────────────────────────
+export async function initAuth(): Promise<{ authenticated: boolean; user?: any }> {
+    await ensureCsrf()
+
+    // If we already have a stored token, trust it and return immediately
+    if (_token) {
+        return { authenticated: true }
     }
 
+    // Try to retrieve a token from the Laravel session (works when the user
+    // navigated to the app via a server-side login / OAuth redirect)
+    try {
+        const res = await api.get('/me/token')
+        if (res.data?.token) {
+            setToken(res.data.token)
+            return { authenticated: true, user: res.data.user }
+        }
+    } catch {
+        // Not authenticated via session — that's fine, show login page
+    }
+    return { authenticated: false }
+}
+
+// ── Auth endpoints ────────────────────────────────────────────────────────────
+export async function loginApi(data: { email: string; password: string }) {
     await ensureCsrf()
-  }
+    const res = await api.post('/api/login', data)
+    if (res.data?.token) setToken(res.data.token)
+    return res
 }
 
-api.interceptors.response.use(response => response, error => {
-  if (error?.response?.status === 401) {
-    error.message = error.response.data?.message || 'Unauthenticated. Please login.'
-  }
-  return Promise.reject(error)
-})
-
-export async function loginApi(payload: { email: string; password: string; remember?: boolean }) {
-  // Ensure Sanctum CSRF cookie is present for stateful auth flows
-  await ensureCsrf()
-
-  const response = await axios.post(`${backend}/api/login`, payload, {
-    withCredentials: true,
-    headers: { 'Content-Type': 'application/json' }
-  })
-
-  if (response.data?.token) {
-    setToken(response.data.token)
-  }
-
-  return response
-}
-
-export async function registerApi(payload: { name: string; email: string; password: string; password_confirmation: string }) {
-  // Ensure Sanctum CSRF cookie is present for stateful auth flows
-  await ensureCsrf()
-
-  const response = await axios.post(`${backend}/api/register`, payload, {
-    withCredentials: true,
-    headers: { 'Content-Type': 'application/json' }
-  })
-
-  if (response.data?.token) {
-    setToken(response.data.token)
-  }
-
-  return response
+export async function registerApi(data: {
+    name: string
+    email: string
+    password: string
+    password_confirmation: string
+}) {
+    await ensureCsrf()
+    const res = await api.post('/api/register', data)
+    if (res.data?.token) setToken(res.data.token)
+    return res
 }
 
 export async function logout() {
-  setToken(null)
+    try {
+        await api.post('/logout')
+    } catch { /* ignore */ }
+    setToken(null)
+    _csrfFetched = false
+    window.location.href = '/login'
 }
 
-export function isLoggedIn() {
-  return Boolean(getToken())
-}
+// ── Profile ───────────────────────────────────────────────────────────────────
+export const getProfile    = ()        => api.get('/api/v1/profile')
+export const updateProfile = (d: any)  => api.put('/api/v1/profile', d)
 
-export async function getResumes() {
-  await prepareRequest()
-  return api.get('/resumes')
-}
+// ── Resumes ───────────────────────────────────────────────────────────────────
+export const getResumes    = ()           => api.get('/api/v1/resumes')
+export const getResume     = (id: number) => api.get(`/api/v1/resumes/${id}`)
+export const uploadResume  = (fd: FormData) =>
+    api.post('/api/v1/resumes', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+export const deleteResume  = (id: number) => api.delete(`/api/v1/resumes/${id}`)
 
-export async function getJobPostings() {
-  await prepareRequest()
-  return api.get('/job-postings')
-}
+export const updateResumeVersion  = (vid: number, d: any) => api.put(`/api/v1/resume-versions/${vid}`, d)
+export const compareResumeVersion = (vid: number)         => api.get(`/api/v1/resume-versions/${vid}/compare`)
+export const exportResumeVersion  = (vid: number, fmt: string) =>
+    `/api/v1/resume-versions/${vid}/export/${fmt}`
 
-export async function postResumeAnalysis(payload: any) {
-  await prepareRequest()
-  return api.post('/resume-analyses', payload)
-}
+// ── Job Postings ───────────────────────────────────────────────────────────────
+export const getJobPostings    = ()        => api.get('/api/v1/job-postings')
+export const createJobPosting  = (d: any)  => api.post('/api/v1/job-postings', d)
+export const deleteJobPosting  = (id: number) => api.delete(`/api/v1/job-postings/${id}`)
 
-export async function postResumeOptimization(payload: any) {
-  await prepareRequest()
-  return api.post('/resume-optimizations', payload)
-}
+// ── Analyses ───────────────────────────────────────────────────────────────────
+export const getAnalyses    = () => api.get('/api/v1/resume-analyses')
+export const triggerAnalysis = (rvId: number, jpId: number) =>
+    api.post('/api/v1/resume-analyses', { resume_version_id: rvId, job_posting_id: jpId })
+export const getAnalysis     = (rvId: number, jpId: number) =>
+    api.get(`/api/v1/resume-analyses/${rvId}/${jpId}`)
 
-export async function postCoverLetter(payload: any) {
-  await prepareRequest()
-  return api.post('/cover-letters', payload)
-}
+// ── Optimization ───────────────────────────────────────────────────────────────
+export const triggerOptimization = (d: { resume_version_id: number; job_posting_id: number; instructions?: string }) =>
+    api.post('/api/v1/resume-optimizations', d)
 
-export async function createApplication(payload: any) {
-  await prepareRequest()
-  return api.post('/applications', payload)
-}
+// ── Cover Letters ──────────────────────────────────────────────────────────────
+export const getCoverLetters    = ()        => api.get('/api/v1/cover-letters')
+export const generateCoverLetter = (d: { resume_version_id: number; job_posting_id: number; tone: string }) =>
+    api.post('/api/v1/cover-letters', d)
+
+// ── Applications ───────────────────────────────────────────────────────────────
+export const getApplications    = ()              => api.get('/api/v1/applications')
+export const createApplication  = (d: any)        => api.post('/api/v1/applications', d)
+export const updateApplication  = (id: number, d: any) => api.put(`/api/v1/applications/${id}`, d)
+export const deleteApplication  = (id: number)    => api.delete(`/api/v1/applications/${id}`)
 
 export default api
 
-// Initialize auth for browser pages: try to obtain a token via the
-// session cookie (/me/token) so web logins automatically provide a Bearer
-// token to the JS client without copying.
-export async function initAuth() {
-  if (api.defaults.headers.common.Authorization) return
-  const stored = getToken()
-  if (stored) {
-    setToken(stored)
-    return
-  }
+// Notifications
+export const getNotifications = () => api.get('/api/v1/notifications')
+export const getUnreadNotifications = () => api.get('/api/v1/notifications/unread')
+export const markNotificationRead = (id: string) => api.post(`/api/v1/notifications/${id}/read`)
+export const markAllNotificationsRead = () => api.post('/api/v1/notifications/read-all')
 
-  try {
-    const r = await axios.get(`${backend}/me/token`, { withCredentials: true })
-    if (r.data?.token) {
-      setToken(r.data.token)
-    }
-  } catch (e) {
-    // ignore errors — caller can still call ensureCsrf when needed
-  }
-}
+// Account / Settings
+export const getAccount = () => api.get('/api/v1/account')
+export const updateAccount = (data: any) => api.put('/api/v1/account', data)
+export const changePassword = (data: any) => api.post('/api/v1/account/password', data)
+export const uploadAvatar = (fd: FormData) => api.post('/api/v1/account/avatar', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+export const deleteAccount = (data: any) => api.delete('/api/v1/account', { data })
+
+// Resume Versions
+export const deleteResumeVersion = (id: number) => api.delete(`/api/v1/resume-versions/${id}`)
+export const setMasterVersion = (id: number) => api.post(`/api/v1/resume-versions/${id}/set-master`)
+
+// Cover Letters
+export const updateCoverLetter = (id: number, data: any) => api.put(`/api/v1/cover-letters/${id}`, data)
+export const exportCoverLetterUrl = (id: number) => `/api/v1/cover-letters/${id}/export`

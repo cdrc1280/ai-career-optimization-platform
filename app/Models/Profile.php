@@ -18,6 +18,7 @@ class Profile extends Model
         'years_of_experience', 'preferred_roles', 'preferred_industries',
         'preferred_locations', 'expected_salary_min', 'expected_salary_max',
         'currency', 'employment_type', 'career_goals', 'completion_percentage',
+        'social_links', 'bio',
     ];
 
     protected function casts(): array
@@ -26,6 +27,7 @@ class Profile extends Model
             'preferred_roles' => 'array',
             'preferred_industries' => 'array',
             'preferred_locations' => 'array',
+            'social_links' => 'array',
         ];
     }
 

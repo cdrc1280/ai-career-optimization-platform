@@ -24,6 +24,8 @@ class OpenAiResumeAnalyzer implements ResumeAnalyzerInterface
         - Be conservative: if the resume is ambiguous about whether a skill
           is present, treat it as a partial match and explain the ambiguity
           rather than guessing.
+        - For skill_gap_details, provide specific learning resources (real URLs).
+        - For interview_prep, base suggested answers only on facts in the resume.
         PROMPT;
 
     private const SCHEMA_HINT = <<<'SCHEMA'
@@ -41,7 +43,10 @@ class OpenAiResumeAnalyzer implements ResumeAnalyzerInterface
           "missing_keywords": ["string"],
           "recommended_keywords": ["string"],
           "ats_issues": ["string"],
-          "score_explanations": {"overall": "string", "skills": "string", "experience": "string", "education": "string", "ats": "string", "keywords": "string", "industry": "string"}
+          "score_explanations": {"overall": "string", "skills": "string", "experience": "string", "education": "string", "ats": "string", "keywords": "string", "industry": "string"},
+          "skill_gap_details": [{"skill": "string", "why_it_matters": "string", "where_in_jd": "string", "learning_resources": ["string"]}],
+          "career_recommendations": {"certifications": [{"name": "string", "provider": "string", "relevance": "string"}], "courses": [{"title": "string", "platform": "string", "url": "string"}], "career_paths": ["string"], "portfolio_projects": ["string"]},
+          "interview_prep": {"behavioral": [{"question": "string", "suggested_answer": "string"}], "technical": [{"question": "string", "suggested_answer": "string"}], "company_specific": [{"question": "string", "suggested_answer": "string"}], "role_specific": [{"question": "string", "suggested_answer": "string"}]}
         }
         SCHEMA;
 
@@ -51,21 +56,21 @@ class OpenAiResumeAnalyzer implements ResumeAnalyzerInterface
     {
         $analysis = ResumeAnalysis::create([
             'resume_version_id' => $resumeVersion->id,
-            'job_posting_id' => $jobPosting->id,
-            'status' => 'processing',
+            'job_posting_id'    => $jobPosting->id,
+            'status'            => 'processing',
         ]);
 
         $userPrompt = json_encode([
-            'resume' => $resumeVersion->content,
+            'resume'      => $resumeVersion->content,
             'job_posting' => [
-                'title' => $jobPosting->job_title,
-                'company' => $jobPosting->company_name,
-                'required_skills' => $jobPosting->required_skills,
-                'preferred_skills' => $jobPosting->preferred_skills,
-                'responsibilities' => $jobPosting->responsibilities,
-                'qualifications' => $jobPosting->qualifications,
-                'keywords' => $jobPosting->keywords,
-                'raw_description' => $jobPosting->raw_description,
+                'title'                  => $jobPosting->job_title,
+                'company'                => $jobPosting->company_name,
+                'required_skills'        => $jobPosting->required_skills,
+                'preferred_skills'       => $jobPosting->preferred_skills,
+                'responsibilities'       => $jobPosting->responsibilities,
+                'qualifications'         => $jobPosting->qualifications,
+                'keywords'               => $jobPosting->keywords,
+                'raw_description'        => $jobPosting->raw_description,
             ],
         ]);
 
@@ -73,21 +78,24 @@ class OpenAiResumeAnalyzer implements ResumeAnalyzerInterface
             $result = $this->aiClient->completeJson(self::SYSTEM_PROMPT, $userPrompt, self::SCHEMA_HINT);
 
             $analysis->update([
-                'overall_match_score' => $result['overall_match_score'] ?? null,
-                'skills_match_score' => $result['skills_match_score'] ?? null,
-                'experience_match_score' => $result['experience_match_score'] ?? null,
-                'education_match_score' => $result['education_match_score'] ?? null,
-                'ats_compatibility_score' => $result['ats_compatibility_score'] ?? null,
-                'keyword_coverage_score' => $result['keyword_coverage_score'] ?? null,
+                'overall_match_score'      => $result['overall_match_score'] ?? null,
+                'skills_match_score'       => $result['skills_match_score'] ?? null,
+                'experience_match_score'   => $result['experience_match_score'] ?? null,
+                'education_match_score'    => $result['education_match_score'] ?? null,
+                'ats_compatibility_score'  => $result['ats_compatibility_score'] ?? null,
+                'keyword_coverage_score'   => $result['keyword_coverage_score'] ?? null,
                 'industry_alignment_score' => $result['industry_alignment_score'] ?? null,
-                'matching_skills' => $result['matching_skills'] ?? [],
-                'missing_skills' => $result['missing_skills'] ?? [],
-                'present_keywords' => $result['present_keywords'] ?? [],
-                'missing_keywords' => $result['missing_keywords'] ?? [],
-                'recommended_keywords' => $result['recommended_keywords'] ?? [],
-                'ats_issues' => $result['ats_issues'] ?? [],
-                'score_explanations' => $result['score_explanations'] ?? [],
-                'status' => 'completed',
+                'matching_skills'          => $result['matching_skills'] ?? [],
+                'missing_skills'           => $result['missing_skills'] ?? [],
+                'present_keywords'         => $result['present_keywords'] ?? [],
+                'missing_keywords'         => $result['missing_keywords'] ?? [],
+                'recommended_keywords'     => $result['recommended_keywords'] ?? [],
+                'ats_issues'               => $result['ats_issues'] ?? [],
+                'score_explanations'       => $result['score_explanations'] ?? [],
+                'skill_gap_details'        => $result['skill_gap_details'] ?? [],
+                'career_recommendations'   => $result['career_recommendations'] ?? [],
+                'interview_prep'           => $result['interview_prep'] ?? [],
+                'status'                   => 'completed',
             ]);
         } catch (\Throwable $e) {
             $analysis->update(['status' => 'failed']);

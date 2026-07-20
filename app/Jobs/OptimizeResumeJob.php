@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\JobPosting;
 use App\Models\ResumeVersion;
 use App\Models\User;
+use App\Notifications\ResumeOptimizationCompleted;
 use App\Services\Contracts\ResumeOptimizerInterface;
 use App\Services\UsageLimiterService;
 use Illuminate\Bus\Queueable;
@@ -35,7 +36,10 @@ class OptimizeResumeJob implements ShouldQueue
             return;
         }
 
-        $optimizer->optimize($this->baseVersion, $this->jobPosting, $this->label);
+        $newVersion = $optimizer->optimize($this->baseVersion, $this->jobPosting, $this->label);
         $limiter->increment($this->user, 'resume_optimizations');
+        if ($newVersion) {
+            $this->user->notify(new ResumeOptimizationCompleted($newVersion));
+        }
     }
 }

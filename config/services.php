@@ -35,8 +35,11 @@ return [
         ],
     ],
 
+    'mock_ai' => env('MOCK_AI', false),
+
     'openai' => [
         'api_key' => env('OPENAI_API_KEY'),
+        'model' => env('OPENAI_MODEL', 'gpt-4o'),
     ],
 
     'google' => [

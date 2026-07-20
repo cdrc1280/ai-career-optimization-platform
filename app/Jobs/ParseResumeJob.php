@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Resume;
 use App\Services\Contracts\ResumeParserInterface;
+use App\Services\ProfileSyncService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -19,8 +20,17 @@ class ParseResumeJob implements ShouldQueue
 
     public function __construct(public Resume $resume) {}
 
-    public function handle(ResumeParserInterface $parser): void
+    public function handle(ResumeParserInterface $parser, ProfileSyncService $syncService): void
     {
-        $parser->parse($this->resume);
+        $parsed = $parser->parse($this->resume);
+
+        // Update the master resume version content with the parsed data
+        $masterVersion = $this->resume->masterVersion;
+        if ($masterVersion) {
+            $masterVersion->update(['content' => $parsed]);
+        }
+
+        // Sync parsed data to the user's profile tables
+        $syncService->sync($this->resume, $parsed);
     }
 }

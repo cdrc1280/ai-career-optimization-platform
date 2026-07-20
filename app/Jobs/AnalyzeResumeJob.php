@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\JobPosting;
 use App\Models\ResumeVersion;
+use App\Notifications\ResumeAnalysisCompleted;
 use App\Services\Contracts\ResumeAnalyzerInterface;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -25,6 +26,9 @@ class AnalyzeResumeJob implements ShouldQueue
 
     public function handle(ResumeAnalyzerInterface $analyzer): void
     {
-        $analyzer->analyze($this->resumeVersion, $this->jobPosting);
+        $analysis = $analyzer->analyze($this->resumeVersion, $this->jobPosting);
+        if ($analysis && $analysis->resumeVersion && $analysis->resumeVersion->resume && $analysis->resumeVersion->resume->user) {
+            $analysis->resumeVersion->resume->user->notify(new ResumeAnalysisCompleted($analysis));
+        }
     }
 }

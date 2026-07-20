@@ -12,19 +12,22 @@ class ResumeAnalysis extends Model
         'experience_match_score', 'education_match_score', 'ats_compatibility_score',
         'keyword_coverage_score', 'industry_alignment_score', 'matching_skills', 'missing_skills',
         'present_keywords', 'missing_keywords', 'recommended_keywords', 'ats_issues',
-        'score_explanations', 'status',
+        'score_explanations', 'skill_gap_details', 'career_recommendations', 'interview_prep', 'status',
     ];
 
     protected function casts(): array
     {
         return [
-            'matching_skills' => 'array',
-            'missing_skills' => 'array',
-            'present_keywords' => 'array',
-            'missing_keywords' => 'array',
-            'recommended_keywords' => 'array',
-            'ats_issues' => 'array',
-            'score_explanations' => 'array',
+            'matching_skills'        => 'array',
+            'missing_skills'         => 'array',
+            'present_keywords'       => 'array',
+            'missing_keywords'       => 'array',
+            'recommended_keywords'   => 'array',
+            'ats_issues'             => 'array',
+            'score_explanations'     => 'array',
+            'skill_gap_details'      => 'array',
+            'career_recommendations' => 'array',
+            'interview_prep'         => 'array',
         ];
     }
 

@@ -29,8 +29,11 @@ return new class extends Migration
             $table->json('present_keywords')->nullable();
             $table->json('missing_keywords')->nullable();
             $table->json('recommended_keywords')->nullable();
-            $table->json('ats_issues')->nullable(); // formatting problems found
-            $table->json('score_explanations')->nullable(); // why each score is what it is
+            $table->json('ats_issues')->nullable();
+            $table->json('score_explanations')->nullable();
+            $table->json('skill_gap_details')->nullable();
+            $table->json('career_recommendations')->nullable();
+            $table->json('interview_prep')->nullable();
 
             $table->enum('status', ['pending', 'processing', 'completed', 'failed'])->default('pending');
             $table->timestamps();
