@@ -58,5 +58,4 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     });
 
     Route::apiResource('applications', ApplicationController::class)->except(['show']);
-    // Route::apiResource('applications', ApplicationController::class)->except(['show']);
 });
