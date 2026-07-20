@@ -3,12 +3,15 @@
 namespace App\Models;
 
 use App\Enums\ApplicationStatus;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Application extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id', 'job_posting_id', 'resume_version_id', 'cover_letter_id',
         'status', 'applied_at', 'notes', 'job_url', 'match_score', 'interview_date', 'follow_up_date'

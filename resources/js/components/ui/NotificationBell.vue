@@ -7,7 +7,7 @@
       <span v-if="store.unreadCount > 0" class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-slate-900"></span>
     </button>
     
-    <div v-if="isOpen" class="absolute bottom-full left-0 mb-2 w-80 bg-bg-surface border border-slate-700/50 rounded-xl shadow-xl overflow-hidden z-50">
+    <div v-if="isOpen" class="absolute top-full right-0 mt-2 w-80 bg-bg-surface border border-slate-700/50 rounded-xl shadow-xl overflow-hidden z-50">
       <div class="p-3 border-b border-slate-700/50 flex justify-between items-center bg-slate-800/30">
         <h3 class="font-semibold text-text-primary">Notifications</h3>
         <button v-if="store.unreadCount > 0" @click="store.markAllRead" class="text-xs text-blue-400 hover:text-blue-300">Mark all read</button>

@@ -17,16 +17,25 @@ use RuntimeException;
 class AiClient
 {
     public function __construct(
-        private readonly string $apiKey = '',
-        private readonly string $model = 'gpt-4o',
-    ) {
-        $this->apiKey = $apiKey !== '' ? $apiKey : (string) config('services.openai.api_key');
-        $this->model  = config('services.openai.model', 'gpt-4o');
+        private readonly string $apiKey,
+        private readonly string $model,
+    ) {}
+
+    /**
+     * Bind in the IoC container via AppServiceProvider so the config
+     * values are resolved at construction time (not in the body).
+     */
+    public static function fromConfig(): self
+    {
+        return new self(
+            apiKey: (string) config('services.anthropic.api_key', ''),
+            model:  (string) config('services.anthropic.model', 'claude-3-haiku-20240307'),
+        );
     }
 
     private function isMockMode(): bool
     {
-        return config('services.mock_ai', false) || empty($this->apiKey);
+        return config('services.mock_ai', false);
     }
 
     /**
@@ -38,14 +47,20 @@ class AiClient
             return $this->mockResponse($systemPrompt, $userPrompt);
         }
 
-        $response = Http::withToken($this->apiKey)
+        $fullPrompt = $systemPrompt . "\n\nRespond ONLY with valid JSON matching this shape:\n" . $schemaHint . "\n\nUser Input:\n" . $userPrompt;
+
+        $response = Http::withHeaders([
+                'x-api-key' => $this->apiKey,
+                'anthropic-version' => '2023-06-01',
+                'content-type' => 'application/json',
+            ])
             ->timeout(120)
-            ->post('https://api.openai.com/v1/chat/completions', [
-                'model'           => $this->model,
-                'response_format' => ['type' => 'json_object'],
-                'messages'        => [
-                    ['role' => 'system', 'content' => $systemPrompt."\n\nRespond ONLY with valid JSON matching this shape:\n".$schemaHint],
-                    ['role' => 'user', 'content' => $userPrompt],
+            ->post('https://api.anthropic.com/v1/messages', [
+                'model'      => $this->model,
+                'max_tokens' => 4000,
+                'messages'   => [
+                    ['role' => 'user', 'content' => $fullPrompt],
+                    ['role' => 'assistant', 'content' => '{']
                 ],
             ]);
 
@@ -53,11 +68,15 @@ class AiClient
             throw new RuntimeException('AI provider request failed: '.$response->body());
         }
 
-        $content = $response->json('choices.0.message.content');
-        $decoded = json_decode((string) $content, true);
+        $content = '{' . $response->json('content.0.text', '');
+        
+        // Sometimes Claude adds trailing text after the JSON, so let's try to extract just the JSON
+        $content = preg_replace('/^.*?({.*}).*$/s', '$1', trim($content));
+
+        $decoded = json_decode($content, true);
 
         if (! is_array($decoded)) {
-            throw new RuntimeException('AI provider returned non-JSON content.');
+            throw new RuntimeException('AI provider returned non-JSON content: ' . $content);
         }
 
         return $decoded;

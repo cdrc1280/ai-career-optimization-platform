@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CoverLetter extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id', 'job_posting_id', 'resume_version_id', 'tone', 'content',
         'exported_pdf_path', 'exported_docx_path',

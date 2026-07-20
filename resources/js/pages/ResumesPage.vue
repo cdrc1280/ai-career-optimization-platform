@@ -4,12 +4,15 @@ import { useResumesStore } from '../stores/resumes'
 import FileDropzone from '../components/ui/FileDropzone.vue'
 import StatusBadge from '../components/ui/StatusBadge.vue'
 import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
+import ConfirmModal from '../components/ConfirmModal.vue'
 import { useRouter } from 'vue-router'
 import { addToast } from '../composables/toast'
 
 const resumesStore = useResumesStore()
 const router = useRouter()
 let pollTimer: any = null
+
+const deleteModal = ref({ show: false, id: 0 })
 
 onMounted(async () => {
     await resumesStore.fetch()
@@ -32,9 +35,13 @@ async function handleFile(file: File) {
     }
 }
 
-async function deleteResume(id: number) {
-    if (!confirm('Delete this resume?')) return
-    await resumesStore.remove(id)
+function confirmDelete(id: number) {
+    deleteModal.value = { show: true, id }
+}
+
+async function deleteResume() {
+    await resumesStore.remove(deleteModal.value.id)
+    deleteModal.value.show = false
     addToast('success', 'Resume deleted.')
 }
 
@@ -98,10 +105,17 @@ function statusColor(s: string) {
           <div class="flex items-center gap-2 flex-shrink-0">
             <StatusBadge :status="resume.parse_status" />
             <button class="btn btn-secondary btn-sm" @click.stop="router.push(`/resumes/${resume.id}`)">Open →</button>
-            <button class="btn btn-danger btn-sm" @click.stop="deleteResume(resume.id)">Delete</button>
+            <button class="btn btn-danger btn-sm" @click.stop="confirmDelete(resume.id)">Delete</button>
           </div>
         </div>
       </div>
     </div>
+    <ConfirmModal 
+      :show="deleteModal.show" 
+      title="Delete Resume"
+      message="Are you sure you want to delete this resume? This action cannot be undone."
+      @close="deleteModal.show = false"
+      @confirm="deleteResume"
+    />
   </div>
 </template>

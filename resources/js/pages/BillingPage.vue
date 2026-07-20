@@ -81,7 +81,7 @@
           <li class="flex items-start gap-3 text-sm text-slate-300"><svg class="w-5 h-5 text-indigo-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Career recommendations</li>
           <li class="flex items-start gap-3 text-sm text-slate-300"><svg class="w-5 h-5 text-indigo-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Priority AI processing</li>
         </ul>
-        <button class="btn btn-primary w-full justify-center bg-gradient-to-r from-blue-600 to-indigo-600 border-0" @click="upgrade">Upgrade to Premium</button>
+        <button class="btn btn-primary w-full justify-center bg-gradient-to-r from-blue-600 to-indigo-600 border-0" @click="upgrade('Premium', billingCycle === 'monthly' ? 19 : 15, 2)">Upgrade to Premium</button>
       </div>
 
       <div class="card p-6 flex flex-col relative overflow-hidden">
@@ -96,7 +96,7 @@
           <li class="flex items-start gap-3 text-sm text-slate-300"><svg class="w-5 h-5 text-purple-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Custom branding</li>
           <li class="flex items-start gap-3 text-sm text-slate-300"><svg class="w-5 h-5 text-purple-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Dedicated support</li>
         </ul>
-        <button class="btn border border-slate-600 hover:bg-slate-800 text-white w-full justify-center" @click="upgrade">Contact Sales</button>
+        <button class="btn border border-slate-600 hover:bg-slate-800 text-white w-full justify-center" @click="upgrade('Enterprise', billingCycle === 'monthly' ? 49 : 39, 3)">Contact Sales</button>
       </div>
     </div>
 
@@ -113,23 +113,44 @@
             <p class="text-sm text-slate-400 mt-1">Add a card to upgrade your plan</p>
           </div>
         </div>
-        <button class="btn btn-secondary" @click="addCard">Add Payment Method</button>
+        <button class="btn btn-secondary" @click="upgrade('Premium', 19, 2)">Add Payment Method</button>
       </div>
     </div>
+    
+    <CheckoutModal 
+      :show="checkoutModal.show"
+      :plan="checkoutModal.plan"
+      @close="checkoutModal.show = false"
+      @success="handleCheckoutSuccess"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { addToast } from '../composables/toast'
+import CheckoutModal from '../components/CheckoutModal.vue'
 
 const billingCycle = ref('monthly')
+const checkoutModal = ref({ show: false, plan: null as any })
 
-function upgrade() {
-  addToast('info', 'Billing integration coming soon')
+function upgrade(name: string, price: number, id: number) {
+  checkoutModal.value = {
+    show: true,
+    plan: {
+      id,
+      name,
+      price_monthly: price,
+      limits: {
+        resumes_per_month: name === 'Premium' ? 'Unlimited' : 3,
+        analyses_per_month: name === 'Premium' ? 'Unlimited' : 5
+      }
+    }
+  }
 }
 
-function addCard() {
-  addToast('info', 'Payment gateway integration coming soon')
+function handleCheckoutSuccess() {
+  addToast('success', 'Plan upgraded successfully!')
+  // In a real app, we would refresh the auth store or user profile to get new limits
 }
 </script>

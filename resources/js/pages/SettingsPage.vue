@@ -80,7 +80,7 @@
             <h4 class="font-medium text-text-primary">Two-Factor Authentication</h4>
             <p class="text-sm text-text-muted mt-1">Add an extra layer of security to your account.</p>
           </div>
-          <span class="badge badge-blue">Coming Soon</span>
+          <button class="btn border border-slate-600 hover:bg-slate-800 text-white" disabled>Enable 2FA (Pending)</button>
         </div>
       </div>
       
@@ -156,29 +156,42 @@
     <div v-if="activeTab === 'danger'" class="card border-red-500/30 p-6 space-y-6">
       <h3 class="text-xl font-semibold text-red-400 border-b border-red-500/20 pb-4">Danger Zone</h3>
       
-      <div class="max-w-xl">
-        <h4 class="font-medium text-text-primary">Delete Account</h4>
-        <p class="text-sm text-text-muted mt-2 mb-4">
+      <div class="card border-red-500/20 p-6">
+        <h3 class="text-lg font-semibold text-red-500 mb-2">Delete Account</h3>
+        <p class="text-slate-400 text-sm max-w-xl mb-4">
           Once you delete your account, there is no going back. Please be certain. All your data including resumes, cover letters, and applications will be permanently removed.
         </p>
-        
-        <div class="bg-red-500/10 border border-red-500/20 p-4 rounded-lg space-y-4">
-          <div class="form-group mb-0">
-            <label class="form-label text-red-200">Confirm Password to Delete</label>
-            <input v-model="deleteForm.password" type="password" class="input border-red-500/30 focus:border-red-500" />
-          </div>
-          <button @click="deleteAccount" :disabled="!deleteForm.password" class="btn btn-danger w-full justify-center">Delete My Account</button>
-        </div>
+        <button @click="deleteModal.show = true" class="btn btn-danger">Delete My Account</button>
       </div>
     </div>
+    <ConfirmModal 
+      :show="deleteModal.show" 
+      title="Delete Account"
+      type="danger"
+      @close="deleteModal.show = false"
+      @confirm="deleteAccount"
+    >
+      <template #message>
+        <div class="space-y-4">
+          <p>Are you absolutely sure? This action cannot be undone and will permanently delete your account and all associated data.</p>
+          <div class="form-group">
+            <label class="form-label text-red-400">Confirm Password to Delete</label>
+            <input v-model="deleteForm.password" type="password" class="input border-red-500/30 focus:border-red-500" placeholder="Your password" />
+          </div>
+        </div>
+      </template>
+    </ConfirmModal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAccountStore } from '../stores/account'
 import { addToast } from '../composables/toast'
+import ConfirmModal from '../components/ConfirmModal.vue'
 
+const router = useRouter()
 const store = useAccountStore()
 const activeTab = ref('account')
 const tabs = [
@@ -189,8 +202,9 @@ const tabs = [
 ]
 
 const accountForm = ref({ name: '', email: '' })
-const passwordForm = ref({ current: '', password: '', password_confirmation: '' })
+const passwordForm = ref({ current_password: '', password: '', password_confirmation: '' })
 const deleteForm = ref({ password: '' })
+const deleteModal = ref({ show: false })
 
 watch(() => store.account, (val) => {
   if (val) {
@@ -230,7 +244,7 @@ async function changePassword() {
     return
   }
   await store.updatePassword(passwordForm.value)
-  passwordForm.value = { current: '', password: '', password_confirmation: '' }
+  passwordForm.value = { current_password: '', password: '', password_confirmation: '' }
 }
 
 function handleAvatarUpload(e: Event) {
@@ -238,10 +252,15 @@ function handleAvatarUpload(e: Event) {
   if (file) store.uploadAvatarFile(file)
 }
 
-function deleteAccount() {
-  if (confirm('Are you ABSOLUTELY sure? This cannot be undone.')) {
-    addToast('error', 'Account deletion simulated')
-    // store.deleteAccount(...)
+async function deleteAccount() {
+  if (!deleteForm.value.password) return
+  try {
+    await store.deleteAccount(deleteForm.value.password)
+    deleteModal.value.show = false
+    addToast('success', 'Account deleted.')
+    router.push('/login')
+  } catch (e: any) {
+    addToast('error', e?.response?.data?.message ?? 'Failed to delete account.')
   }
 }
 </script>

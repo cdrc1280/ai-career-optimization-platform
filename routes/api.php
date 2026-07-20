@@ -84,6 +84,9 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::post('notifications/{id}/read', [NotificationController::class, 'markRead']);
     Route::post('notifications/read-all', [NotificationController::class, 'markAllRead']);
 
+    // Subscriptions
+    Route::post('subscriptions/simulate-checkout', [\App\Http\Controllers\Api\SubscriptionController::class, 'simulateCheckout']);
+
     // Account/Settings
     Route::get('account', [AccountController::class, 'show']);
     Route::put('account', [AccountController::class, 'update']);

@@ -123,7 +123,7 @@ export const updateProfile = (d: any)  => api.put('/api/v1/profile', d)
 export const getResumes    = ()           => api.get('/api/v1/resumes')
 export const getResume     = (id: number) => api.get(`/api/v1/resumes/${id}`)
 export const uploadResume  = (fd: FormData) =>
-    api.post('/api/v1/resumes', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    api.post('/api/v1/resumes', fd)
 export const deleteResume  = (id: number) => api.delete(`/api/v1/resumes/${id}`)
 
 export const updateResumeVersion  = (vid: number, d: any) => api.put(`/api/v1/resume-versions/${vid}`, d)
@@ -167,10 +167,12 @@ export const markNotificationRead = (id: string) => api.post(`/api/v1/notificati
 export const markAllNotificationsRead = () => api.post('/api/v1/notifications/read-all')
 
 // Account / Settings
+export const getPlans = () => api.get('/api/v1/plans')
+export const simulateCheckout = (planId: number) => api.post('/api/v1/subscriptions/simulate-checkout', { plan_id: planId })
 export const getAccount = () => api.get('/api/v1/account')
 export const updateAccount = (data: any) => api.put('/api/v1/account', data)
 export const changePassword = (data: any) => api.post('/api/v1/account/password', data)
-export const uploadAvatar = (fd: FormData) => api.post('/api/v1/account/avatar', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+export const uploadAvatar = (fd: FormData) => api.post('/api/v1/account/avatar', fd)
 export const deleteAccount = (data: any) => api.delete('/api/v1/account', { data })
 
 // Resume Versions

@@ -44,7 +44,10 @@ class AiResumeParser implements ResumeParserInterface
 
         try {
             $rawText = $this->extractRawText($resume);
-            $result = $this->aiClient->completeJson(self::SYSTEM_PROMPT, $rawText, self::SCHEMA_HINT);
+            $dbPrompt = \App\Models\AiPrompt::where('name', 'resume_parser')->where('is_active', true)->value('prompt_text');
+            $systemPrompt = $dbPrompt ?: self::SYSTEM_PROMPT;
+
+            $result = $this->aiClient->completeJson($systemPrompt, $rawText, self::SCHEMA_HINT);
 
             $status = match ($result['confidence'] ?? 'low') {
                 'high' => 'completed',
@@ -66,7 +69,7 @@ class AiResumeParser implements ResumeParserInterface
 
     private function extractRawText(Resume $resume): string
     {
-        $path = Storage::path($resume->file_path);
+        $path = Storage::disk('private')->path($resume->file_path);
 
         return match ($resume->mime_type) {
             'application/pdf' => (new PdfParser)->parseFile($path)->getText(),

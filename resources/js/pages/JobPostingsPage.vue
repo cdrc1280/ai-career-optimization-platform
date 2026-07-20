@@ -8,6 +8,7 @@ import Modal from '../components/ui/Modal.vue'
 import StatusBadge from '../components/ui/StatusBadge.vue'
 import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
 import { addToast } from '../composables/toast'
+import ConfirmModal from '../components/ConfirmModal.vue'
 
 const jobsStore = useJobPostingsStore()
 const resumesStore = useResumesStore()
@@ -20,6 +21,7 @@ const jobText = ref('')
 const showAnalyzeModal = ref(false)
 const analyzeTarget = ref<any>(null)
 const selectedVersionId = ref<number | null>(null)
+const deleteModal = ref({ show: false, id: 0 })
 
 onMounted(async () => {
     await Promise.all([jobsStore.fetch(), resumesStore.fetch()])
@@ -56,9 +58,9 @@ function openAnalyze(job: any) {
 const allVersions = computed(() => {
     const vers: any[] = []
     resumesStore.resumes.forEach(r => {
-        (r.versions ?? []).forEach((v: any) => {
-            if (v.is_master) vers.push({ ...v, resume_name: r.original_filename })
-        })
+        if (r.master_version) {
+            vers.push({ ...r.master_version, resume_name: r.original_filename })
+        }
     })
     return vers
 })
@@ -76,9 +78,13 @@ async function runAnalysis() {
     }
 }
 
-async function deleteJob(id: number) {
-    if (!confirm('Delete this job posting?')) return
-    await jobsStore.remove(id)
+function confirmDelete(id: number) {
+    deleteModal.value = { show: true, id }
+}
+
+async function deleteJob() {
+    await jobsStore.remove(deleteModal.value.id)
+    deleteModal.value.show = false
     addToast('success', 'Job posting deleted.')
 }
 </script>
@@ -144,7 +150,7 @@ async function deleteJob(id: number) {
             </div>
             <div class="flex gap-2 flex-shrink-0">
               <button class="btn btn-primary btn-sm" @click="openAnalyze(job)">🎯 Analyze</button>
-              <button class="btn btn-danger btn-sm" @click="deleteJob(job.id)">Delete</button>
+              <button class="btn btn-danger btn-sm" @click="confirmDelete(job.id)">Delete</button>
             </div>
           </div>
         </div>
@@ -178,5 +184,13 @@ async function deleteJob(id: number) {
         </button>
       </div>
     </Modal>
+
+    <ConfirmModal 
+      :show="deleteModal.show" 
+      title="Delete Job Posting"
+      message="Are you sure you want to delete this job posting? This action cannot be undone."
+      @close="deleteModal.show = false"
+      @confirm="deleteJob"
+    />
   </div>
 </template>

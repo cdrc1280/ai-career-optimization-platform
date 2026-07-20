@@ -75,7 +75,10 @@ class OpenAiResumeAnalyzer implements ResumeAnalyzerInterface
         ]);
 
         try {
-            $result = $this->aiClient->completeJson(self::SYSTEM_PROMPT, $userPrompt, self::SCHEMA_HINT);
+            $dbPrompt = \App\Models\AiPrompt::where('name', 'resume_analysis')->where('is_active', true)->value('prompt_text');
+            $systemPrompt = $dbPrompt ?: self::SYSTEM_PROMPT;
+
+            $result = $this->aiClient->completeJson($systemPrompt, $userPrompt, self::SCHEMA_HINT);
 
             $analysis->update([
                 'overall_match_score'      => $result['overall_match_score'] ?? null,

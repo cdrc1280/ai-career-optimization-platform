@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class JobPosting extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id', 'source_url', 'source_site', 'company_name', 'job_title',
         'raw_description', 'required_skills', 'preferred_skills', 'responsibilities',

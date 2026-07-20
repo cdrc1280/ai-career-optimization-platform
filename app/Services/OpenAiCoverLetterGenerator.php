@@ -35,7 +35,10 @@ class OpenAiCoverLetterGenerator implements CoverLetterGeneratorInterface
             ],
         ]);
 
-        $result = $this->aiClient->completeJson(self::SYSTEM_PROMPT, $userPrompt, self::SCHEMA_HINT);
+        $dbPrompt = \App\Models\AiPrompt::where('name', 'cover_letter')->where('is_active', true)->value('prompt_text');
+        $systemPrompt = $dbPrompt ?: self::SYSTEM_PROMPT;
+
+        $result = $this->aiClient->completeJson($systemPrompt, $userPrompt, self::SCHEMA_HINT);
 
         return CoverLetter::create([
             'user_id' => $resumeVersion->resume->user_id,

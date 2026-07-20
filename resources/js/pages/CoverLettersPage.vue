@@ -33,9 +33,9 @@ onMounted(async () => {
 const allVersions = computed(() => {
     const vers: any[] = []
     resumesStore.resumes.forEach(r => {
-        (r.versions ?? []).filter((v: any) => v.is_master).forEach((v: any) => {
-            vers.push({ ...v, resume_name: r.original_filename })
-        })
+        if (r.master_version) {
+            vers.push({ ...r.master_version, resume_name: r.original_filename })
+        }
     })
     return vers
 })

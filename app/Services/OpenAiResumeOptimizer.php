@@ -65,7 +65,10 @@ class OpenAiResumeOptimizer implements ResumeOptimizerInterface
             ],
         ]);
 
-        $result = $this->aiClient->completeJson(self::SYSTEM_PROMPT, $userPrompt, self::SCHEMA_HINT);
+        $dbPrompt = \App\Models\AiPrompt::where('name', 'resume_optimizer')->where('is_active', true)->value('prompt_text');
+        $systemPrompt = $dbPrompt ?: self::SYSTEM_PROMPT;
+
+        $result = $this->aiClient->completeJson($systemPrompt, $userPrompt, self::SCHEMA_HINT);
 
         // Defense in depth: even though the prompt forbids it, verify no new
         // employers/titles were introduced before we ever persist AI output.

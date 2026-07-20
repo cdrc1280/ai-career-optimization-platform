@@ -22,6 +22,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Build AiClient from config at construction time (required because
+        // its properties are readonly — they cannot be set after __construct).
+        $this->app->singleton(\App\Services\AiClient::class, function () {
+            return \App\Services\AiClient::fromConfig();
+        });
+
         RateLimiter::for('ai', fn($request) => Limit::perMinute(10)->by($request->user()->id));
 
         Gate::policy(\App\Models\Resume::class, \App\Policies\ResumePolicy::class);

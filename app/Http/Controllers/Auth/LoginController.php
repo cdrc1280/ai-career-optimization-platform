@@ -66,17 +66,16 @@ class LoginController extends Controller
             return response()->json(['message' => 'Too many login attempts. Try again later.'], 429);
         }
 
-        if (!Auth::attempt($credentials, $request->boolean('remember'))) {
+        $user = \App\Models\User::where('email', $credentials['email'])->first();
+
+        if (!$user || !\Illuminate\Support\Facades\Hash::check($credentials['password'], $user->password)) {
             RateLimiter::hit($key, 60);
             return response()->json(['message' => 'The provided credentials do not match our records.'], 422);
         }
 
         RateLimiter::clear($key);
 
-        $request->session()->regenerate();
-
-        $user = Auth::user();
-        $token = $user?->createToken('api-token')->plainTextToken;
+        $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
             'token' => $token,

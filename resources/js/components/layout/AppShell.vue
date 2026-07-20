@@ -129,9 +129,7 @@ async function handleLogout() {
         </div>
     
 </nav>
-        <div class="px-4 py-2 mt-auto">
-          <NotificationBell />
-        </div>
+
 
     <!-- User -->
     <div class="sidebar-footer">
@@ -157,13 +155,18 @@ async function handleLogout() {
 
   <!-- ─── Main content ────────────────────────────────────────────── -->
   <div class="main-content">
-    <!-- Mobile topbar -->
-    <div class="topbar">
-      <button class="btn btn-ghost btn-icon" @click="sidebarOpen = true">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-      </button>
-      <span style="font-size:1rem;font-weight:700;background:linear-gradient(135deg,#3b82f6,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">CareerAI</span>
-    </div>
+    <!-- Top header (desktop & mobile) -->
+    <header class="sticky top-0 z-30 flex items-center justify-between px-6 py-3 bg-[#0d1629]/90 backdrop-blur-md border-b border-slate-700/50">
+      <div class="flex items-center gap-3">
+        <button class="md:hidden p-2 text-slate-400 hover:text-white transition-colors" @click="sidebarOpen = true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        </button>
+        <span class="md:hidden font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-500">CareerAI</span>
+      </div>
+      <div class="flex items-center gap-4 ml-auto">
+        <NotificationBell />
+      </div>
+    </header>
 
     <!-- Page content with transition -->
     <div class="page-content">

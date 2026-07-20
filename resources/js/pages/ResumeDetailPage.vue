@@ -36,6 +36,7 @@ async function handleSetMaster() {
     }
 }
 const router = useRouter()
+const route = useRoute()
 const resumesStore = useResumesStore()
 const jobsStore = useJobPostingsStore()
 

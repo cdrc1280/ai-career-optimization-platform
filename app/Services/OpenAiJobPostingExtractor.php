@@ -48,7 +48,10 @@ class OpenAiJobPostingExtractor implements JobPostingExtractorInterface
                 $jobPosting->raw_description = $rawText;
             }
 
-            $result = $this->aiClient->completeJson(self::SYSTEM_PROMPT, $rawText, self::SCHEMA_HINT);
+            $dbPrompt = \App\Models\AiPrompt::where('name', 'job_extractor')->where('is_active', true)->value('prompt_text');
+            $systemPrompt = $dbPrompt ?: self::SYSTEM_PROMPT;
+
+            $result = $this->aiClient->completeJson($systemPrompt, $rawText, self::SCHEMA_HINT);
 
             $jobPosting->update([
                 'company_name' => $result['company_name'] ?? null,
