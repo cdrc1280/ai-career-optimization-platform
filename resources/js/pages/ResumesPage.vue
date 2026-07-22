@@ -7,6 +7,7 @@ import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import { useRouter } from 'vue-router'
 import { addToast } from '../composables/toast'
+import PageLayout from '../components/layout/PageLayout.vue'
 
 const resumesStore = useResumesStore()
 const router = useRouter()
@@ -51,13 +52,7 @@ function statusColor(s: string) {
 </script>
 
 <template>
-  <div class="fade-in space-y-6">
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold text-white">Resumes</h1>
-        <p class="text-slate-400 text-sm mt-0.5">Upload and manage your resumes for AI optimization</p>
-      </div>
-    </div>
+  <PageLayout title="Resumes" subtitle="Upload and manage your resumes for AI optimization">
 
     <!-- Upload -->
     <div class="card">
@@ -117,5 +112,5 @@ function statusColor(s: string) {
       @close="deleteModal.show = false"
       @confirm="deleteResume"
     />
-  </div>
+  </PageLayout>
 </template>

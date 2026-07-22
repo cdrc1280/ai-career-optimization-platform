@@ -1,9 +1,5 @@
 <template>
-  <div class="space-y-8">
-    <div class="page-header">
-      <h1 class="page-title">Billing & Plans</h1>
-      <p class="page-subtitle">Manage your subscription and billing details</p>
-    </div>
+  <PageLayout title="Billing & Plans" subtitle="Manage your subscription and billing details">
 
     <!-- Current Plan -->
     <div class="card p-6 bg-gradient-to-br from-slate-900 to-slate-800 border-blue-500/30">
@@ -123,13 +119,14 @@
       @close="checkoutModal.show = false"
       @success="handleCheckoutSuccess"
     />
-  </div>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { addToast } from '../composables/toast'
 import CheckoutModal from '../components/CheckoutModal.vue'
+import PageLayout from '../components/layout/PageLayout.vue'
 
 const billingCycle = ref('monthly')
 const checkoutModal = ref({ show: false, plan: null as any })

@@ -1,15 +1,11 @@
 <template>
-  <div class="space-y-6">
-    <div class="page-header flex justify-between items-end">
-      <div>
-        <h1 class="page-title">Notifications</h1>
-        <p class="page-subtitle">Stay updated on your career optimization progress</p>
-      </div>
+  <PageLayout title="Notifications" subtitle="Stay updated on your career optimization progress">
+    <template #actions>
       <button v-if="unreadCount > 0" @click="markAllRead" class="btn btn-secondary">
         <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
         Mark all as read
       </button>
-    </div>
+    </template>
 
     <div class="tab-bar">
       <button v-for="tab in tabs" :key="tab.id" 
@@ -19,7 +15,7 @@
       </button>
     </div>
 
-    <div class="card overflow-hidden">
+    <div class="card glass-card overflow-hidden border-0">
       <div v-if="loading && items.length === 0" class="p-12 flex justify-center">
         <div class="spinner w-8 h-8"></div>
       </div>
@@ -32,14 +28,15 @@
 
       <div v-else class="divide-y divide-slate-700/50">
         <div v-for="n in filteredItems" :key="n.id" 
-             class="p-4 sm:p-6 hover:bg-slate-800/30 transition-colors flex gap-4 cursor-pointer"
-             :class="{'bg-blue-500/5': !n.read_at}"
+             class="p-4 sm:p-6 transition-colors flex gap-4 cursor-pointer border-l-2"
+             :class="{'bg-blue-500/10 border-blue-500': !n.read_at, 'hover:bg-slate-800/30 border-transparent': n.read_at}"
              @click="handleNotificationClick(n)">
           <div class="flex-shrink-0 mt-1">
-            <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xl shadow-inner">
-              <span v-if="n.type === 'analysis'">🎯</span>
-              <span v-else-if="n.type === 'optimization'">✨</span>
-              <span v-else-if="n.type === 'cover_letter'">✉️</span>
+            <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner transition-colors"
+                 :class="!n.read_at ? 'bg-blue-500/20 border border-blue-500/30' : 'bg-slate-800 border border-slate-700'">
+              <span v-if="n.data?.type === 'analysis'">🎯</span>
+              <span v-else-if="n.data?.type === 'optimization'">✨</span>
+              <span v-else-if="n.data?.type === 'cover_letter'">✉️</span>
               <span v-else>🔔</span>
             </div>
           </div>
@@ -47,11 +44,11 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
               <div class="flex items-center gap-2">
                 <span v-if="!n.read_at" class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 shadow-[0_0_5px_rgba(59,130,246,0.5)]"></span>
-                <h4 class="text-sm font-semibold text-text-primary truncate" :class="{'text-white': !n.read_at}">{{ n.title }}</h4>
+                <h4 class="text-sm font-semibold text-text-primary truncate" :class="{'text-white': !n.read_at}">{{ n.data?.title || 'Notification' }}</h4>
               </div>
-              <span class="text-xs text-slate-500 whitespace-nowrap">{{ n.created_at }}</span>
+              <span class="text-xs text-slate-500 whitespace-nowrap">{{ new Date(n.created_at).toLocaleString() }}</span>
             </div>
-            <p class="text-sm text-text-muted line-clamp-2" :class="{'text-slate-300': !n.read_at}">{{ n.message }}</p>
+            <p class="text-sm text-text-muted line-clamp-2" :class="{'text-slate-300': !n.read_at}">{{ n.data?.message || 'You have a new notification.' }}</p>
           </div>
         </div>
       </div>
@@ -63,7 +60,7 @@
         </button>
       </div>
     </div>
-  </div>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
@@ -71,6 +68,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getNotifications, markNotificationRead, markAllNotificationsRead } from '../services/api'
 import { useNotificationsStore } from '../stores/notifications'
+import PageLayout from '../components/layout/PageLayout.vue'
 
 const router = useRouter()
 const store = useNotificationsStore()
@@ -138,11 +136,11 @@ async function handleNotificationClick(n: any) {
     } catch (e) {}
   }
   
-  if (n.type === 'analysis' && n.job_id) {
-    router.push(`/applications/${n.job_id}`)
-  } else if (n.type === 'optimization' && n.resume_id) {
-    router.push(`/resumes/${n.resume_id}`)
-  } else if (n.type === 'cover_letter' && n.cover_letter_id) {
+  if (n.data?.type === 'analysis' && n.data?.job_id) {
+    router.push(`/applications/${n.data.job_id}`)
+  } else if (n.data?.type === 'optimization' && n.data?.resume_id) {
+    router.push(`/resumes/${n.data.resume_id}`)
+  } else if (n.data?.type === 'cover_letter' && n.data?.cover_letter_id) {
     router.push('/cover-letters')
   }
 }

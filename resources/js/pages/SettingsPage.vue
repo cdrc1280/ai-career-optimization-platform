@@ -17,14 +17,14 @@
       <h3 class="text-xl font-semibold text-text-primary border-b border-slate-700/50 pb-4">Account Profile</h3>
       
       <div class="flex items-center gap-6">
-        <div class="relative w-20 h-20 rounded-full overflow-hidden bg-slate-800 flex items-center justify-center border border-slate-700 group cursor-pointer">
+        <label class="relative w-20 h-20 rounded-full overflow-hidden bg-slate-800 flex items-center justify-center border border-slate-700 group cursor-pointer">
           <img v-if="store.account?.profile?.avatar_url" :src="store.account.profile.avatar_url" class="w-full h-full object-cover" />
           <span v-else class="text-2xl font-bold text-slate-400">{{ store.account?.name?.charAt(0) || 'U' }}</span>
           <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
             <span class="text-xs text-white">Upload</span>
           </div>
-          <input type="file" class="hidden absolute inset-0 w-full h-full cursor-pointer z-10" accept="image/*" @change="handleAvatarUpload" />
-        </div>
+          <input type="file" class="hidden" accept="image/*" @change="handleAvatarUpload" />
+        </label>
         <div>
           <h4 class="font-medium text-text-primary">Profile Picture</h4>
           <p class="text-xs text-text-muted mt-1">JPG, GIF or PNG. Max size of 2MB.</p>
@@ -126,13 +126,13 @@
         <div class="pt-4 border-t border-slate-700/50">
           <h4 class="font-medium text-text-primary mb-3">Theme</h4>
           <div class="flex gap-4">
-            <label class="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-blue-500/50 bg-blue-500/10">
-              <input type="radio" name="theme" value="dark" checked class="text-blue-500 bg-slate-800 border-slate-600">
+            <label :class="['flex items-center gap-2 cursor-pointer p-3 rounded-lg border transition-colors', theme === 'dark' ? 'border-blue-500/50 bg-blue-500/10' : 'border-slate-700 bg-slate-800/30']">
+              <input type="radio" v-model="theme" value="dark" class="text-blue-500 bg-slate-800 border-slate-600">
               <span class="text-sm text-text-primary">Dark Mode</span>
             </label>
-            <label class="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-slate-700 bg-slate-800/30 opacity-60">
-              <input type="radio" name="theme" value="light" disabled class="text-blue-500 bg-slate-800 border-slate-600">
-              <span class="text-sm text-text-primary flex items-center gap-2">Light Mode <span class="badge badge-blue text-[10px] py-0">Soon</span></span>
+            <label :class="['flex items-center gap-2 cursor-pointer p-3 rounded-lg border transition-colors', theme === 'light' ? 'border-blue-500/50 bg-blue-500/10' : 'border-slate-700 bg-slate-800/30']">
+              <input type="radio" v-model="theme" value="light" class="text-blue-500 bg-slate-800 border-slate-600">
+              <span class="text-sm text-text-primary flex items-center gap-2">Light Mode</span>
             </label>
           </div>
         </div>
@@ -205,6 +205,17 @@ const accountForm = ref({ name: '', email: '' })
 const passwordForm = ref({ current_password: '', password: '', password_confirmation: '' })
 const deleteForm = ref({ password: '' })
 const deleteModal = ref({ show: false })
+const theme = ref(document.documentElement.classList.contains('light') ? 'light' : 'dark')
+
+watch(theme, (newTheme) => {
+  if (newTheme === 'light') {
+    document.documentElement.classList.add('light')
+    localStorage.setItem('theme', 'light')
+  } else {
+    document.documentElement.classList.remove('light')
+    localStorage.setItem('theme', 'dark')
+  }
+})
 
 watch(() => store.account, (val) => {
   if (val) {

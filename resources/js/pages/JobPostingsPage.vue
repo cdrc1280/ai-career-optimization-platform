@@ -9,6 +9,7 @@ import StatusBadge from '../components/ui/StatusBadge.vue'
 import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
 import { addToast } from '../composables/toast'
 import ConfirmModal from '../components/ConfirmModal.vue'
+import PageLayout from '../components/layout/PageLayout.vue'
 
 const jobsStore = useJobPostingsStore()
 const resumesStore = useResumesStore()
@@ -19,6 +20,7 @@ const addTab = ref<'url' | 'text'>('url')
 const jobUrl = ref('')
 const jobText = ref('')
 const showAnalyzeModal = ref(false)
+const showAddModal = ref(false)
 const analyzeTarget = ref<any>(null)
 const selectedVersionId = ref<number | null>(null)
 const deleteModal = ref({ show: false, id: 0 })
@@ -32,6 +34,7 @@ async function submitUrl() {
     try {
         await jobsStore.create({ source_url: jobUrl.value, source_type: 'url' })
         jobUrl.value = ''
+        showAddModal.value = false
         addToast('success', 'Job posting added! Extracting details...')
     } catch (e: any) {
         addToast('error', e?.response?.data?.message ?? 'Failed to add job.')
@@ -43,6 +46,7 @@ async function submitText() {
     try {
         await jobsStore.create({ raw_description: jobText.value, source_type: 'manual' })
         jobText.value = ''
+        showAddModal.value = false
         addToast('success', 'Job posting added! Extracting details...')
     } catch (e: any) {
         addToast('error', e?.response?.data?.message ?? 'Failed to add job.')
@@ -90,45 +94,21 @@ async function deleteJob() {
 </script>
 
 <template>
-  <div class="fade-in space-y-6">
-    <div>
-      <h1 class="text-2xl font-bold text-white">Job Postings</h1>
-      <p class="text-slate-400 text-sm mt-0.5">Add job postings to analyze and optimize your resume</p>
-    </div>
-
-    <!-- Add job -->
-    <div class="card">
-      <h3 class="font-semibold text-white mb-4">Add Job Posting</h3>
-      <div class="tab-bar mb-4">
-        <button :class="['tab-item', addTab === 'url' && 'active']" @click="addTab = 'url'">Paste URL</button>
-        <button :class="['tab-item', addTab === 'text' && 'active']" @click="addTab = 'text'">Paste Description</button>
-      </div>
-
-      <div v-if="addTab === 'url'" class="flex gap-2">
-        <input v-model="jobUrl" type="url" class="input flex-1" placeholder="https://careers.company.com/job/12345" @keyup.enter="submitUrl" />
-        <button class="btn btn-primary flex-shrink-0" :disabled="jobsStore.creating" @click="submitUrl">
-          <LoadingSpinner v-if="jobsStore.creating" :size="14" />
-          Extract
-        </button>
-      </div>
-      <div v-else class="space-y-2">
-        <textarea v-model="jobText" class="input" rows="8" placeholder="Paste the full job description here..." />
-        <div class="flex justify-end">
-          <button class="btn btn-primary" :disabled="jobsStore.creating" @click="submitText">
-            <LoadingSpinner v-if="jobsStore.creating" :size="14" />
-            Extract Details
-          </button>
-        </div>
-      </div>
-    </div>
+  <PageLayout title="Job Postings" subtitle="Track the jobs you want to apply for and optimize your resume against them">
+    <template #actions>
+      <button class="btn btn-primary" @click="showAddModal = true">
+        <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        Add Job
+      </button>
+    </template>
 
     <!-- Job list -->
     <div class="card">
-      <h3 class="font-semibold text-white mb-4">Job Postings ({{ jobsStore.jobPostings.length }})</h3>
+      <h3 class="font-semibold text-white mb-4">Saved Jobs ({{ jobsStore.jobPostings.length }})</h3>
       <div v-if="jobsStore.loading && jobsStore.jobPostings.length === 0" class="flex justify-center py-8"><LoadingSpinner :size="28" /></div>
       <div v-else-if="jobsStore.jobPostings.length === 0" class="text-center py-12 text-slate-500">
         <div class="text-4xl mb-3">🔍</div>
-        <p>No job postings added yet. Paste a URL or job description above.</p>
+        <p>No job postings added yet. Click 'Add Job' to get started.</p>
       </div>
       <div v-else class="space-y-3">
         <div
@@ -156,6 +136,31 @@ async function deleteJob() {
         </div>
       </div>
     </div>
+
+    <!-- Add Modal -->
+    <Modal v-if="showAddModal" title="Add Job Posting" @close="showAddModal = false">
+      <div class="tab-bar mb-4">
+        <button :class="['tab-item', addTab === 'url' && 'active']" @click="addTab = 'url'">Paste URL</button>
+        <button :class="['tab-item', addTab === 'text' && 'active']" @click="addTab = 'text'">Paste Description</button>
+      </div>
+
+      <div v-if="addTab === 'url'" class="flex gap-2">
+        <input v-model="jobUrl" type="url" class="input flex-1" placeholder="https://careers.company.com/job/12345" @keyup.enter="submitUrl" />
+        <button class="btn btn-primary flex-shrink-0" :disabled="jobsStore.creating" @click="submitUrl">
+          <LoadingSpinner v-if="jobsStore.creating" :size="14" />
+          Extract
+        </button>
+      </div>
+      <div v-else class="space-y-2">
+        <textarea v-model="jobText" class="input" rows="8" placeholder="Paste the full job description here..." />
+        <div class="flex justify-end">
+          <button class="btn btn-primary" :disabled="jobsStore.creating" @click="submitText">
+            <LoadingSpinner v-if="jobsStore.creating" :size="14" />
+            Extract Details
+          </button>
+        </div>
+      </div>
+    </Modal>
 
     <!-- Analyze modal -->
     <Modal v-if="showAnalyzeModal" title="Analyze Resume" @close="showAnalyzeModal = false">
@@ -192,5 +197,5 @@ async function deleteJob() {
       @close="deleteModal.show = false"
       @confirm="deleteJob"
     />
-  </div>
+  </PageLayout>
 </template>

@@ -7,6 +7,7 @@ import Modal from '../components/ui/Modal.vue'
 import StatusBadge from '../components/ui/StatusBadge.vue'
 import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
 import { addToast } from '../composables/toast'
+import PageLayout from '../components/layout/PageLayout.vue'
 
 const resumesStore = useResumesStore()
 const jobsStore = useJobPostingsStore()
@@ -72,14 +73,10 @@ const tones = [
 </script>
 
 <template>
-  <div class="fade-in space-y-6">
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold text-white">Cover Letters</h1>
-        <p class="text-slate-400 text-sm mt-0.5">AI-generated cover letters tailored to each job</p>
-      </div>
+  <PageLayout title="Cover Letters" subtitle="View and copy your AI-generated cover letters">
+    <template #actions>
       <button class="btn btn-primary" @click="openWizard">✉️ Generate New</button>
-    </div>
+    </template>
 
     <div v-if="loading" class="flex justify-center py-12"><LoadingSpinner :size="32" /></div>
     <div v-else-if="letters.length === 0" class="card text-center py-16">
@@ -169,5 +166,5 @@ const tones = [
         </div>
       </template>
     </Modal>
-  </div>
+  </PageLayout>
 </template>

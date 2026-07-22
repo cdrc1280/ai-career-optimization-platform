@@ -22,6 +22,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Support\Facades\Event::listen(
+            \SocialiteProviders\Manager\SocialiteWasCalled::class,
+            \SocialiteProviders\Microsoft\MicrosoftExtendSocialite::class
+        );
+
         // Build AiClient from config at construction time (required because
         // its properties are readonly — they cannot be set after __construct).
         $this->app->singleton(\App\Services\AiClient::class, function () {

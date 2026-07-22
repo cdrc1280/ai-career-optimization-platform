@@ -41,8 +41,8 @@ async function submit() {
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
           </svg>
         </div>
-        <h1 style="font-size:1.5rem;font-weight:700;color:#e2e8f0;line-height:1.2">Welcome back</h1>
-        <p style="color:#94a3b8;font-size:0.875rem;margin-top:6px">Sign in to your CareerAI account</p>
+        <h1 style="font-size:1.5rem;font-weight:700;color:var(--text-primary);line-height:1.2">Welcome back</h1>
+        <p style="color:var(--text-muted);font-size:0.875rem;margin-top:6px">Sign in to your CareerAI account</p>
       </div>
 
       <!-- Error alert -->

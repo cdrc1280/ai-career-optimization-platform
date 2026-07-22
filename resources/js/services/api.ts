@@ -8,7 +8,6 @@ const api = axios.create({
     headers: {
         'X-Requested-With': 'XMLHttpRequest',
         'Accept':           'application/json',
-        'Content-Type':     'application/json',
     },
 })
 
@@ -123,7 +122,7 @@ export const updateProfile = (d: any)  => api.put('/api/v1/profile', d)
 export const getResumes    = ()           => api.get('/api/v1/resumes')
 export const getResume     = (id: number) => api.get(`/api/v1/resumes/${id}`)
 export const uploadResume  = (fd: FormData) =>
-    api.post('/api/v1/resumes', fd)
+    api.post('/api/v1/resumes', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
 export const deleteResume  = (id: number) => api.delete(`/api/v1/resumes/${id}`)
 
 export const updateResumeVersion  = (vid: number, d: any) => api.put(`/api/v1/resume-versions/${vid}`, d)
@@ -151,6 +150,8 @@ export const triggerOptimization = (d: { resume_version_id: number; job_posting_
 export const getCoverLetters    = ()        => api.get('/api/v1/cover-letters')
 export const generateCoverLetter = (d: { resume_version_id: number; job_posting_id: number; tone: string }) =>
     api.post('/api/v1/cover-letters', d)
+export const updateCoverLetter = (id: number, data: any) => api.put(`/api/v1/cover-letters/${id}`, data)
+export const exportCoverLetterUrl = (id: number) => `/api/v1/cover-letters/${id}/export`
 
 // ── Applications ───────────────────────────────────────────────────────────────
 export const getApplications    = ()              => api.get('/api/v1/applications')
@@ -172,13 +173,14 @@ export const simulateCheckout = (planId: number) => api.post('/api/v1/subscripti
 export const getAccount = () => api.get('/api/v1/account')
 export const updateAccount = (data: any) => api.put('/api/v1/account', data)
 export const changePassword = (data: any) => api.post('/api/v1/account/password', data)
-export const uploadAvatar = (fd: FormData) => api.post('/api/v1/account/avatar', fd)
+export const uploadAvatar = (fd: FormData) => api.post('/api/v1/account/avatar', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
 export const deleteAccount = (data: any) => api.delete('/api/v1/account', { data })
 
 // Resume Versions
 export const deleteResumeVersion = (id: number) => api.delete(`/api/v1/resume-versions/${id}`)
 export const setMasterVersion = (id: number) => api.post(`/api/v1/resume-versions/${id}/set-master`)
 
-// Cover Letters
-export const updateCoverLetter = (id: number, data: any) => api.put(`/api/v1/cover-letters/${id}`, data)
-export const exportCoverLetterUrl = (id: number) => `/api/v1/cover-letters/${id}/export`
+// Copilot
+export const getCopilotSessions = () => api.get('/api/v1/copilot')
+export const getCopilotSession = (id: number) => api.get(`/api/v1/copilot/${id}`)
+export const sendCopilotMessage = (data: { session_id?: number, message: string }) => api.post('/api/v1/copilot', data)

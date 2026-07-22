@@ -46,7 +46,9 @@ class OpenAiResumeAnalyzer implements ResumeAnalyzerInterface
           "score_explanations": {"overall": "string", "skills": "string", "experience": "string", "education": "string", "ats": "string", "keywords": "string", "industry": "string"},
           "skill_gap_details": [{"skill": "string", "why_it_matters": "string", "where_in_jd": "string", "learning_resources": ["string"]}],
           "career_recommendations": {"certifications": [{"name": "string", "provider": "string", "relevance": "string"}], "courses": [{"title": "string", "platform": "string", "url": "string"}], "career_paths": ["string"], "portfolio_projects": ["string"]},
-          "interview_prep": {"behavioral": [{"question": "string", "suggested_answer": "string"}], "technical": [{"question": "string", "suggested_answer": "string"}], "company_specific": [{"question": "string", "suggested_answer": "string"}], "role_specific": [{"question": "string", "suggested_answer": "string"}]}
+          "interview_prep": {"behavioral": [{"question": "string", "suggested_answer": "string"}], "technical": [{"question": "string", "suggested_answer": "string"}], "company_specific": [{"question": "string", "suggested_answer": "string"}], "role_specific": [{"question": "string", "suggested_answer": "string"}]},
+          "recruiter_review": {"overall_score": 0-100, "strengths": ["string"], "weaknesses": ["string"], "red_flags": ["string"], "ats_pass_probability": 0-100, "summary": "string"},
+          "integrity_flags": {"unsupported_skills": ["string"], "experience_inconsistencies": ["string"], "hallucination_warnings": ["string"]}
         }
         SCHEMA;
 
@@ -98,6 +100,8 @@ class OpenAiResumeAnalyzer implements ResumeAnalyzerInterface
                 'skill_gap_details'        => $result['skill_gap_details'] ?? [],
                 'career_recommendations'   => $result['career_recommendations'] ?? [],
                 'interview_prep'           => $result['interview_prep'] ?? [],
+                'recruiter_review'         => $result['recruiter_review'] ?? [],
+                'integrity_flags'          => $result['integrity_flags'] ?? [],
                 'status'                   => 'completed',
             ]);
         } catch (\Throwable $e) {

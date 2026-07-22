@@ -4,6 +4,7 @@ import { useProfileStore } from '../stores/profile'
 import ProgressBar from '../components/ui/ProgressBar.vue'
 import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
 import { addToast } from '../composables/toast'
+import PageLayout from '../components/layout/PageLayout.vue'
 
 const profileStore = useProfileStore()
 const saving = ref<string | null>(null)
@@ -62,12 +63,7 @@ const completion = computed(() => profileStore.profile?.completion_percentage ??
 </script>
 
 <template>
-  <div class="fade-in space-y-6">
-    <div>
-      <h1 class="text-2xl font-bold text-white">My Profile</h1>
-      <p class="text-slate-400 text-sm mt-0.5">Keep your profile up-to-date for better AI analysis results</p>
-    </div>
-
+  <PageLayout title="My Profile" subtitle="Keep your profile up-to-date for better AI analysis results">
     <!-- Completion bar -->
     <div class="card">
       <div class="flex items-center justify-between mb-2">
@@ -268,5 +264,5 @@ const completion = computed(() => profileStore.profile?.completion_percentage ??
         </div>
       </div>
     </template>
-  </div>
+  </PageLayout>
 </template>

@@ -7,9 +7,13 @@
       <span v-if="store.unreadCount > 0" class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-slate-900"></span>
     </button>
     
-    <div v-if="isOpen" class="absolute top-full right-0 mt-2 w-80 bg-bg-surface border border-slate-700/50 rounded-xl shadow-xl overflow-hidden z-50">
-      <div class="p-3 border-b border-slate-700/50 flex justify-between items-center bg-slate-800/30">
-        <h3 class="font-semibold text-text-primary">Notifications</h3>
+    <!-- Dropdown -->
+    <div
+      v-if="isOpen"
+      class="absolute right-0 mt-3 w-80 bg-[#111e36]/95 backdrop-blur-xl border border-slate-700/60 rounded-2xl shadow-2xl overflow-hidden z-50 transform origin-top-right transition-all"
+    >
+      <div class="p-4 border-b border-slate-700/50 flex justify-between items-center bg-slate-800/30">
+        <h3 class="font-semibold text-white">Notifications</h3>
         <button v-if="store.unreadCount > 0" @click="store.markAllRead" class="text-xs text-blue-400 hover:text-blue-300">Mark all read</button>
       </div>
       
@@ -22,19 +26,19 @@
                class="p-3 border-b border-slate-700/50 last:border-0 hover:bg-slate-800/50 transition-colors cursor-pointer flex gap-3"
                :class="{'opacity-60': n.read_at}"
                @click="store.markRead(n.id)">
-            <div class="mt-1 flex-shrink-0">
-              <span v-if="n.type === 'analysis'" class="text-xl">🎯</span>
-              <span v-else-if="n.type === 'optimization'" class="text-xl">✨</span>
-              <span v-else-if="n.type === 'cover_letter'" class="text-xl">✉️</span>
+            <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" :class="!n.read_at ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-800 text-slate-400'">
+              <span v-if="n.data?.type === 'analysis'" class="text-xl">🎯</span>
+              <span v-else-if="n.data?.type === 'optimization'" class="text-xl">✨</span>
+              <span v-else-if="n.data?.type === 'cover_letter'" class="text-xl">✉️</span>
               <span v-else class="text-xl">🔔</span>
             </div>
             <div class="flex-1 min-w-0">
               <div class="text-sm font-medium text-text-primary flex justify-between">
-                <span class="truncate">{{ n.title }}</span>
+                <span class="truncate">{{ n.data?.title || 'Notification' }}</span>
                 <span v-if="!n.read_at" class="w-2 h-2 bg-blue-500 rounded-full mt-1.5 flex-shrink-0"></span>
               </div>
-              <div class="text-xs text-slate-400 mt-0.5 line-clamp-2">{{ n.message }}</div>
-              <div class="text-[10px] text-slate-500 mt-1">{{ n.created_at || 'Just now' }}</div>
+              <div class="text-xs text-slate-400 mt-0.5 line-clamp-2">{{ n.data?.message || 'You have a new notification.' }}</div>
+              <div class="text-[10px] text-slate-500 mt-1">{{ new Date(n.created_at).toLocaleString() || 'Just now' }}</div>
             </div>
           </div>
         </div>

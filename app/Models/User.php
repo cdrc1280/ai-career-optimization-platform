@@ -70,6 +70,21 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Subscription::class)->latestOfMany();
     }
 
+    public function careerRoadmaps(): HasMany
+    {
+        return $this->hasMany(CareerRoadmap::class);
+    }
+
+    public function offerEvaluations(): HasMany
+    {
+        return $this->hasMany(OfferEvaluation::class);
+    }
+
+    public function mockInterviews(): HasMany
+    {
+        return $this->hasMany(MockInterview::class);
+    }
+
     public function isAdmin(): bool
     {
         return in_array($this->role, [UserRole::Admin, UserRole::SuperAdmin], true);

@@ -1,6 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..800;1,14..32,300..500&display=swap');
 @import "tailwindcss";
 
+@theme {
+    --color-bg-base: var(--bg-base);
+    --color-bg-surface: var(--bg-surface);
+    --color-bg-card: var(--bg-card);
+    --color-bg-hover: var(--bg-hover);
+    --color-border: var(--border);
+    --color-text-primary: var(--text-primary);
+    --color-text-muted: var(--text-muted);
+    --color-text-subtle: var(--text-subtle);
+}
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
@@ -52,6 +63,30 @@
     --glow-blue: 0 0 24px rgba(59,130,246,0.25);
 }
 
+:root.light {
+    /* Backgrounds */
+    --bg-base:    #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-card:    #ffffff;
+    --bg-hover:   #f1f5f9;
+    --bg-input:   rgba(0,0,0,0.03);
+
+    /* Borders */
+    --border:       rgba(0,0,0,0.08);
+    --border-hover: rgba(0,0,0,0.15);
+    --border-focus: rgba(59,130,246,0.5);
+
+    /* Text */
+    --text-primary: #0f172a;
+    --text-muted:   #475569;
+    --text-subtle:  #94a3b8;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+    --shadow:    0 4px 12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 12px 30px rgba(0,0,0,0.12);
+    --glow-blue: 0 0 24px rgba(59,130,246,0.15);
+}
 /* ────────────────────────────────────────────────────────────────────────────
    RESET & BASE
 ──────────────────────────────────────────────────────────────────────────── */
@@ -229,7 +264,7 @@ body {
 
 .main-content {
     margin-left: var(--sidebar-w);
-    flex: 1;
+    width: calc(100% - var(--sidebar-w));
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -237,9 +272,10 @@ body {
 
 .page-content {
     flex: 1;
-    padding: 28px 32px;
+    padding: 32px 40px;
     max-width: 1280px;
     width: 100%;
+    margin: 0 auto;
 }
 
 /* ────────────────────────────────────────────────────────────────────────────
@@ -277,13 +313,16 @@ body {
     border: 1px solid var(--border);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    padding: 16px;
 }
 
 .glass-card {
     background: rgba(255,255,255,0.035);
     border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 16px;
     border-radius: var(--radius-lg);
-    backdrop-filter: blur(20px);
 }
 
 /* ────────────────────────────────────────────────────────────────────────────
@@ -548,8 +587,9 @@ select.input {
 }
 
 .modal-box {
-    background: #0f1d35;
-    border: 1px solid rgba(255,255,255,0.1);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
     border-radius: var(--radius-xl);
     padding: 28px;
     width: 100%;
@@ -888,14 +928,17 @@ select.input {
 /* ────────────────────────────────────────────────────────────────────────────
    RESPONSIVE
 ──────────────────────────────────────────────────────────────────────────── */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .sidebar {
         transform: translateX(-100%);
         box-shadow: var(--shadow-lg);
     }
     .sidebar.open { transform: translateX(0); }
-    .main-content { margin-left: 0; }
-    .page-content { padding: 20px 16px; }
+    .main-content { 
+        margin-left: 0; 
+        width: 100%;
+    }
+    .page-content { padding: 24px 20px; }
     .topbar { display: flex; }
 }
 

@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import NotificationBell from "../ui/NotificationBell.vue"
+import CopilotDrawer from "../ui/CopilotDrawer.vue"
 import { onMounted } from "vue"
 import { useNotificationsStore } from "../../stores/notifications"
+import { useCopilotStore } from "../../stores/copilot"
 
 const notificationsStore = useNotificationsStore()
+const copilotStore = useCopilotStore()
 onMounted(() => {
   notificationsStore.fetchUnread()
   setInterval(() => notificationsStore.fetchUnread(), 60000)
@@ -29,6 +32,7 @@ const navGroups = [
         label: 'Overview',
         items: [
             { name: 'Dashboard',    to: '/dashboard',  icon: 'grid' },
+            { name: 'Analytics',    to: '/analytics',  icon: 'trendingUp' },
             { name: 'Profile',      to: '/profile',    icon: 'user' },
         ],
     },
@@ -36,6 +40,7 @@ const navGroups = [
         label: 'Career Tools',
         items: [
             { name: 'Resumes',          to: '/resumes',       icon: 'document' },
+            { name: 'Job Discovery',    to: '/job-discovery', icon: 'search' },
             { name: 'Job Postings',     to: '/job-postings',  icon: 'briefcase' },
             { name: 'Analysis',         to: '/analysis',      icon: 'chart' },
             { name: 'Cover Letters',    to: '/cover-letters', icon: 'mail' },
@@ -44,9 +49,26 @@ const navGroups = [
     {
         label: 'Growth',
         items: [
+            { name: 'Roadmap',          to: '/roadmap',                icon: 'map' },
+            { name: 'Mock Interview',   to: '/mock-interview',         icon: 'video' },
             { name: 'Interview Prep',   to: '/interview-prep',         icon: 'mic' },
             { name: 'Career Paths',     to: '/career-recommendations', icon: 'compass' },
+            { name: 'Offer Evaluation', to: '/offers',                 icon: 'cash' },
             { name: 'Applications',     to: '/applications',           icon: 'kanban' },
+        ],
+    },
+    {
+        label: 'Branding',
+        items: [
+            { name: 'Personal Brand',   to: '/branding',           icon: 'sparkles' },
+            { name: 'Portfolio Audit',  to: '/portfolio-analyzer', icon: 'code' },
+        ],
+    },
+    {
+        label: 'Ecosystem',
+        items: [
+            { name: 'Recruiter Hub',    to: '/recruiter', icon: 'building' },
+            { name: 'Extension Hub',    to: '/extension', icon: 'puzzle' },
         ],
     },
 ]
@@ -61,6 +83,15 @@ const PATHS: Record<string, string> = {
     mic:      'M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3zM19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8',
     compass:  'M12 2a10 10 0 100 20A10 10 0 0012 2zm0 0v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07',
     kanban:   'M3 3h5v5H3zM3 10h5v11H3zM10 3h5v11h-5zM16 3h5v5h-5zM16 10h5v11h-5zM10 16h5v5h-5z',
+    map:      'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7',
+    cash:     'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z',
+    video:    'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z',
+    sparkles: 'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z',
+    code:     'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4',
+    trendingUp: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
+    search:   'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
+    building: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
+    puzzle:   'M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 100-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z',
 }
 
 function isActive(to: string) {
@@ -87,14 +118,14 @@ async function handleLogout() {
   <aside :class="['sidebar', { open: sidebarOpen }]">
     <!-- Logo -->
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon">
+      <div class="sidebar-logo-icon bg-blue-500 rounded-md p-1 shadow-md border border-blue-400/30">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
         </svg>
       </div>
       <div>
-        <div style="font-size:0.9375rem;font-weight:700;color:#e2e8f0;line-height:1">CareerAI</div>
-        <div style="font-size:10px;font-weight:600;letter-spacing:0.08em;color:#3b82f6;margin-top:2px">PLATFORM</div>
+        <div class="text-[0.9375rem] font-bold text-text-primary leading-none">CareerAI</div>
+        <div class="text-[10px] font-semibold tracking-wider text-blue-500 mt-0.5">PLATFORM</div>
       </div>
     </div>
 
@@ -133,7 +164,7 @@ async function handleLogout() {
 
     <!-- User -->
     <div class="sidebar-footer">
-      <div class="user-card">
+      <router-link to="/settings" class="user-card" style="display:flex; cursor:pointer; text-decoration:none; transition:background 0.2s">
         <div class="user-avatar">{{ auth.initials }}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:0.875rem;font-weight:500;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ auth.displayName }}</div>
@@ -143,25 +174,26 @@ async function handleLogout() {
           class="btn btn-ghost btn-icon"
           title="Sign out"
           style="flex-shrink:0"
-          @click="handleLogout"
+          @click.prevent="handleLogout"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
           </svg>
         </button>
-      </div>
+      </router-link>
     </div>
   </aside>
 
   <!-- ─── Main content ────────────────────────────────────────────── -->
   <div class="main-content">
     <!-- Top header (desktop & mobile) -->
-    <header class="sticky top-0 z-30 flex items-center justify-between px-6 py-3 bg-[#0d1629]/90 backdrop-blur-md border-b border-slate-700/50">
+    <header class="sticky top-0 z-30 flex items-center justify-between px-6 py-3 backdrop-blur-md border-b"
+            style="background: color-mix(in srgb, var(--bg-surface) 90%, transparent); border-color: var(--border);">
       <div class="flex items-center gap-3">
-        <button class="md:hidden p-2 text-slate-400 hover:text-white transition-colors" @click="sidebarOpen = true">
+        <button class="md:hidden p-2 text-text-muted hover:text-text-primary transition-colors" @click="sidebarOpen = true">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
         </button>
-        <span class="md:hidden font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-500">CareerAI</span>
+        <span class="md:hidden font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">CareerAI</span>
       </div>
       <div class="flex items-center gap-4 ml-auto">
         <NotificationBell />
@@ -177,6 +209,8 @@ async function handleLogout() {
       </RouterView>
     </div>
   </div>
+
+  <CopilotDrawer />
 </template>
 
 <style scoped>

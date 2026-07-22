@@ -16,47 +16,58 @@ class SocialAuthController extends Controller
     {
         abort_unless(in_array($provider, ['google', 'github', 'microsoft']), 404);
 
-        return Socialite::driver($provider)->redirect();
+        if (empty(config("services.{$provider}.client_id"))) {
+            return redirect()->route('login', ['error' => 'oauth_config_missing']);
+        }
+
+        try {
+            return Socialite::driver($provider)->redirect();
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->route('login', ['error' => 'oauth_config_missing']);
+        } catch (\Throwable $e) {
+            return redirect()->route('login', ['error' => 'oauth_failed']);
+        }
     }
 
     public function callback(Request $request, string $provider): RedirectResponse
     {
         abort_unless(in_array($provider, ['google', 'github', 'microsoft']), 404);
 
-        // Socialite may throw — let Laravel report the error and show a friendly page.
-        $socialUser = Socialite::driver($provider)->user();
+        try {
+            $socialUser = Socialite::driver($provider)->user();
 
-        $user = User::where('oauth_provider', $provider)
-            ->where('oauth_id', $socialUser->getId())
-            ->first();
+            $user = User::where('oauth_provider', $provider)
+                ->where('oauth_id', $socialUser->getId())
+                ->first();
 
-        if (!$user && $socialUser->getEmail()) {
-            // If a user exists with this email, attach the oauth info.
-            $user = User::where('email', $socialUser->getEmail())->first();
-        }
-
-        if (!$user) {
-            $user = User::create([
-                'name' => $socialUser->getName() ?: $socialUser->getNickname() ?: 'User',
-                'email' => $socialUser->getEmail(),
-                'password' => bcrypt(Str::random(40)),
-                'oauth_provider' => $provider,
-                'oauth_id' => $socialUser->getId(),
-                'email_verified_at' => now(),
-            ]);
-        } else {
-            if (!$user->oauth_provider || !$user->oauth_id) {
-                $user->update(['oauth_provider' => $provider, 'oauth_id' => $socialUser->getId()]);
+            if (!$user && $socialUser->getEmail()) {
+                $user = User::where('email', $socialUser->getEmail())->first();
             }
+
+            if (!$user) {
+                $user = User::create([
+                    'name' => $socialUser->getName() ?: $socialUser->getNickname() ?: 'User',
+                    'email' => $socialUser->getEmail(),
+                    'password' => bcrypt(Str::random(40)),
+                    'oauth_provider' => $provider,
+                    'oauth_id' => $socialUser->getId(),
+                    'email_verified_at' => now(),
+                ]);
+            } else {
+                if (!$user->oauth_provider || !$user->oauth_id) {
+                    $user->update(['oauth_provider' => $provider, 'oauth_id' => $socialUser->getId()]);
+                }
+            }
+
+            Auth::login($user);
+            $request->session()->regenerate();
+
+            $token = $user->createToken('web-social-token')->plainTextToken;
+            $request->session()->put('api_token', $token);
+
+            return redirect()->route('dashboard');
+        } catch (\Throwable $e) {
+            return redirect()->route('login', ['error' => 'oauth_failed']);
         }
-
-        Auth::login($user);
-        $request->session()->regenerate();
-
-        // Create and store an API token for SPA convenience.
-        $token = $user->createToken('web-social-token')->plainTextToken;
-        $request->session()->put('api_token', $token);
-
-        return redirect()->route('dashboard');
     }
 }

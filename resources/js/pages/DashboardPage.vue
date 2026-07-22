@@ -9,6 +9,7 @@ import { useProfileStore }      from '../stores/profile'
 import { useAnalysisStore }     from '../stores/analysis'
 import ProgressBar  from '../components/ui/ProgressBar.vue'
 import StatusBadge  from '../components/ui/StatusBadge.vue'
+import PageLayout   from '../components/layout/PageLayout.vue'
 
 const router       = useRouter()
 const resumesStore = useResumesStore()
@@ -80,14 +81,8 @@ const quickActions = [
 </script>
 
 <template>
-  <div>
-    <!-- Page header -->
-    <div class="page-header">
-      <div>
-        <h1 class="page-title">Dashboard</h1>
-        <p class="page-subtitle">Your career overview at a glance</p>
-      </div>
-      <div style="display:flex;gap:8px">
+  <PageLayout title="Dashboard" subtitle="Your career overview at a glance">
+    <template #actions>
         <button class="btn btn-secondary btn-sm" @click="router.push('/resumes')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
           Upload Resume
@@ -96,8 +91,7 @@ const quickActions = [
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Add Job Posting
         </button>
-      </div>
-    </div>
+    </template>
 
     <!-- Skeleton while loading -->
     <template v-if="loading">
@@ -230,5 +224,5 @@ const quickActions = [
         </div>
       </div>
     </template>
-  </div>
+  </PageLayout>
 </template>

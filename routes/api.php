@@ -15,6 +15,8 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\AccountController;
 use App\Http\Controllers\Api\ResumeVersionController;
 use App\Http\Controllers\Api\CoverLetterExportController;
+use App\Http\Controllers\RecruiterController;
+use App\Http\Controllers\ExtensionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -76,6 +78,13 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
         Route::post('cover-letters', [CoverLetterController::class, 'store']);
         Route::put('cover-letters/{coverLetter}', [CoverLetterController::class, 'update']);
         Route::get('cover-letters/{coverLetter}/export', [CoverLetterExportController::class, 'export']);
+
+        // Phase 3: Personal Branding & Portfolio Analysis
+        Route::get('personal-branding', [\App\Http\Controllers\Api\PersonalBrandController::class, 'show']);
+        Route::post('personal-branding/generate', [\App\Http\Controllers\Api\PersonalBrandController::class, 'generate']);
+        
+        Route::get('portfolio-analyses', [\App\Http\Controllers\Api\PortfolioAnalysisController::class, 'index']);
+        Route::post('portfolio-analyses', [\App\Http\Controllers\Api\PortfolioAnalysisController::class, 'store']);
     });
 
     // Notifications
@@ -100,4 +109,41 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
     // --- Applications ---
     Route::apiResource('applications', ApplicationController::class)->except(['show']);
+
+    // --- Phase 2: Career Roadmap & Learning ---
+    Route::apiResource('roadmaps', \App\Http\Controllers\CareerRoadmapController::class)->only(['index', 'show', 'store', 'destroy']);
+    Route::apiResource('offer-evaluations', \App\Http\Controllers\OfferEvaluationController::class)->only(['index', 'show', 'store']);
+    
+    Route::prefix('mock-interviews')->group(function () {
+        Route::get('/', [\App\Http\Controllers\MockInterviewController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\MockInterviewController::class, 'store']);
+        Route::get('/{mockInterview}', [\App\Http\Controllers\MockInterviewController::class, 'show']);
+        Route::delete('/{mockInterview}', [\App\Http\Controllers\MockInterviewController::class, 'destroy']);
+        Route::post('/{mockInterview}/chat', [\App\Http\Controllers\MockInterviewController::class, 'chat']);
+        Route::post('/{mockInterview}/finish', [\App\Http\Controllers\MockInterviewController::class, 'finish']);
+    });
+
+    // --- AI Copilot ---
+    Route::prefix('copilot')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\V1\CopilotController::class, 'index']);
+        Route::get('/{session}', [\App\Http\Controllers\Api\V1\CopilotController::class, 'show']);
+        Route::post('/chat', [\App\Http\Controllers\Api\V1\CopilotController::class, 'chat']);
+    });
+
+    // --- Phase 4: Analytics & Job Discovery ---
+    Route::get('analytics/performance', [\App\Http\Controllers\Api\AnalyticsController::class, 'index']);
+    Route::get('jobs/discovery', [\App\Http\Controllers\Api\JobDiscoveryController::class, 'index']);
+
+    // --- Phase 5: Enterprise Recruiter Platform ---
+    Route::prefix('recruiter')->group(function () {
+        Route::get('candidates', [RecruiterController::class, 'candidates']);
+        Route::post('bulk-screen', [RecruiterController::class, 'bulkScreen']);
+        Route::post('notes', [RecruiterController::class, 'addNote']);
+    });
+
+    // --- Phase 5: Extension Hub ---
+    Route::prefix('extension')->group(function () {
+        Route::get('token', [ExtensionController::class, 'token']);
+        Route::post('analyze', [ExtensionController::class, 'analyze']);
+    });
 });

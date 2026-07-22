@@ -34,6 +34,8 @@ return new class extends Migration
             $table->json('skill_gap_details')->nullable();
             $table->json('career_recommendations')->nullable();
             $table->json('interview_prep')->nullable();
+            $table->json('recruiter_review')->nullable();
+            $table->json('integrity_flags')->nullable();
 
             $table->enum('status', ['pending', 'processing', 'completed', 'failed'])->default('pending');
             $table->timestamps();

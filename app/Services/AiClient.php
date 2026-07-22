@@ -91,43 +91,131 @@ class AiClient
             return $this->mockParsedResume();
         }
 
+        // Job Discovery
+        if (str_contains($sp, 'job discovery') || str_contains($sp, 'find jobs')) {
+            return ['jobs' => $this->mockJobDiscovery()];
+        }
+
         // Job posting extraction
         if (str_contains($sp, 'job posting') || str_contains($sp, 'extract structured job')) {
             return $this->mockJobPosting();
         }
 
+        // Mock Interview
+        if (str_contains($sp, 'interview') || str_contains($sp, 'mock')) {
+            if (str_contains($sp, 'score') || str_contains($sp, 'evaluate') || str_contains($sp, 'feedback')) {
+                return $this->mockInterviewScore();
+            }
+            $replies = [
+                "That's a solid answer. Can you tell me about a time you had to deal with a tight deadline or conflicting priorities?",
+                "Interesting perspective. How do you approach code quality, testing, and documentation when delivering features rapidly?",
+                "Great experience. Could you elaborate on a complex technical problem you solved recently and how you measured the outcome?",
+                "Thank you for sharing that. How do you handle feedback or code review pushback from senior colleagues?",
+            ];
+            return ['reply' => $replies[array_rand($replies)]];
+        }
+
         // Resume analysis
-        if (str_contains($sp, 'analysis') || str_contains($sp, 'compare') || str_contains($sp, 'score')) {
+        if (str_contains($sp, 'resume analysis') || str_contains($sp, 'overall match') || str_contains($sp, 'jd match') || str_contains($sp, 'ats score')) {
             return $this->mockAnalysis();
         }
 
-        // Resume optimization
-        if (str_contains($sp, 'optimiz') || str_contains($sp, 'tailored')) {
-            $payload = json_decode($userPrompt, true);
-            $resume  = $payload['resume'] ?? $this->mockParsedResume();
-
-            return [
-                'resume'     => $resume,
-                'change_log' => [
-                    ['section' => 'summary', 'change_type' => 'reworded', 'before' => 'Experienced developer', 'after' => 'Results-driven full-stack developer with 5+ years delivering scalable web applications', 'reason' => 'Stronger opening statement with quantified experience'],
-                    ['section' => 'work_experience', 'change_type' => 'reworded', 'before' => 'Developed features', 'after' => 'Architected and delivered 20+ production features using Laravel and Vue.js', 'reason' => 'Added specificity and quantification to match JD requirements'],
-                    ['section' => 'skills', 'change_type' => 'reordered', 'before' => 'PHP, JavaScript, MySQL', 'after' => 'Laravel, PHP 8.x, Vue.js 3, MySQL, Redis', 'reason' => 'Reordered to match job description keyword priority'],
-                ],
-            ];
+        // Personal Branding
+        if (str_contains($sp, 'brand') || str_contains($sp, 'linkedin') || str_contains($sp, 'github bio') || str_contains($sp, 'elevator pitch')) {
+            return $this->mockPersonalBranding();
         }
 
-        // Cover letter
-        if (str_contains($sp, 'cover letter') || str_contains($sp, 'write cover')) {
-            $payload  = json_decode($userPrompt, true);
-            $company  = $payload['job_posting']['company'] ?? 'your organization';
-            $position = $payload['job_posting']['title']   ?? 'this position';
+        // Portfolio Analysis
+        if (str_contains($sp, 'portfolio') || str_contains($sp, 'github repo') || str_contains($sp, 'github profile')) {
+            return $this->mockPortfolioAnalysis();
+        }
 
-            return [
-                'content' => "Dear Hiring Manager,\n\nI am writing to express my enthusiastic interest in the {$position} position at {$company}. With over five years of hands-on experience building scalable web applications using Laravel, Vue.js, and modern cloud infrastructure, I am confident that my skills and passion for engineering excellence align perfectly with your team's mission.\n\nIn my current role, I have led the development of multiple production-grade applications serving thousands of daily users. I architected a microservices-based platform that reduced deployment time by 60%, and mentored a team of four engineers through an agile transformation. I am particularly drawn to {$company}'s commitment to innovation and the challenges this role presents in scaling your platform to the next level.\n\nI would love the opportunity to bring my expertise in backend architecture, API design, and performance optimization to {$company}. Thank you for considering my application — I look forward to discussing how I can contribute to your team's success.\n\nBest regards,\nJohn Doe",
-            ];
+        // Recruiter Screening
+        if (str_contains($sp, 'recruiter') || str_contains($sp, 'bulk screen')) {
+            return $this->mockRecruiterScreening();
+        }
+
+        // Extension Analysis
+        if (str_contains($sp, 'extension') || str_contains($sp, 'analyze job') || str_contains($sp, 'browser extension')) {
+            return $this->mockExtensionAnalysis();
         }
 
         return ['result' => 'ok'];
+    }
+
+    private function mockPersonalBranding(): array
+    {
+        return [
+            'headline' => 'Senior Full-Stack Engineer | Building scalable web apps with Laravel & Vue | AWS Certified',
+            'about_section' => 'I am a results-driven Full-Stack Engineer with 5+ years of experience delivering robust web applications that serve thousands of users. My expertise spans Laravel, Vue.js, and modern cloud infrastructures (AWS, Docker). I thrive in agile teams and am passionate about developer experience, clean code, and continuous learning.',
+            'elevator_pitch' => 'Hi, I\'m a Senior Full-Stack Engineer specializing in Laravel and Vue. I build scalable, high-performance web applications, and in my last role, I led a team that reduced deployment times by 60%. I\'m looking for opportunities to architect robust systems at an innovative tech company.',
+            'linkedin_posts' => [
+                ['title' => 'The Power of Microservices', 'content' => 'Just migrated a legacy monolith to microservices and reduced our deployment times by 60%. Here are 3 lessons I learned along the way...'],
+                ['title' => 'Vue 3 Composition API', 'content' => 'If you haven\'t tried the Vue 3 Composition API yet, you\'re missing out! It completely changed how I organize logic in large components.'],
+                ['title' => 'Continuous Learning', 'content' => 'Just passed my AWS Certified Developer exam! So excited to apply these cloud-native principles to my next project. #AWS #CloudComputing #NeverStopLearning']
+            ],
+            'github_bio' => 'Senior Full-Stack Dev 💻 | Laravel & Vue enthusiast ⚡ | Open-source contributor 🌍',
+            'portfolio_copy' => [
+                'hero_title' => 'Hi, I build scalable web applications.',
+                'hero_subtitle' => 'Specializing in Laravel, Vue.js, and Cloud Infrastructure.',
+                'about_blurb' => 'With 5+ years of experience, I turn complex problems into elegant, maintainable solutions.',
+                'contact_cta' => 'Let\'s build something great together. Reach out!'
+            ]
+        ];
+    }
+
+    private function mockPortfolioAnalysis(): array
+    {
+        return [
+            'overall_score' => 85,
+            'project_quality' => 88,
+            'repo_structure' => 82,
+            'readme_quality' => 75,
+            'suggestions' => [
+                'Add more comprehensive READMEs to your top 3 pinned repositories.',
+                'Include architectural diagrams for your larger full-stack projects.',
+                'Ensure all projects have a live demo link or screenshots.',
+                'Clean up old, inactive repositories to highlight your best work.'
+            ],
+            'strengths' => [
+                'Consistent commit history shows active development.',
+                'Use of modern frameworks (Laravel, Vue 3) is well-represented.',
+                'Code quality in main projects follows standard conventions.'
+            ]
+        ];
+    }
+
+    private function mockCareerRoadmap(): array
+    {
+        return [
+            'months' => [
+                ['month' => 1, 'focus' => 'Advanced PHP and System Architecture', 'skills' => ['Design Patterns', 'SOLID Principles'], 'resources' => ['Laracasts: Advanced Laravel', 'Book: Clean Architecture']],
+                ['month' => 2, 'focus' => 'Cloud and DevOps Fundamentals', 'skills' => ['Docker', 'CI/CD Pipelines'], 'resources' => ['Docker for Developers', 'GitHub Actions Guide']],
+                ['month' => 3, 'focus' => 'Microservices and Scaling', 'skills' => ['Microservices', 'Message Queues'], 'resources' => ['Course: Microservices in Laravel', 'RabbitMQ Docs']],
+            ]
+        ];
+    }
+
+    private function mockOfferEvaluation(): array
+    {
+        return [
+            'salary_score' => 85,
+            'benefits_score' => 90,
+            'red_flags' => ['Equity vesting schedule is longer than standard (5 years vs 4 years)'],
+            'negotiation_tips' => ['Ask for a sign-on bonus to offset the equity schedule', 'Negotiate for more remote days if desired'],
+            'overall_recommendation' => 'Strong offer. Negotiate the equity terms but otherwise a great opportunity.'
+        ];
+    }
+
+    private function mockInterviewScore(): array
+    {
+        return [
+            'technical_accuracy' => 85,
+            'communication_skills' => 90,
+            'confidence' => 88,
+            'feedback' => 'You demonstrated strong knowledge of the domain and communicated your thoughts clearly. However, you could have gone deeper into specific optimization techniques.',
+            'improvements' => ['Provide more specific examples of past challenges', 'Structure your answers using the STAR method']
+        ];
     }
 
     private function mockParsedResume(): array
@@ -342,6 +430,89 @@ class AiClient
                     ['question' => 'How do you ensure code quality in a fast-paced environment?', 'suggested_answer' => 'I implement automated quality gates: PHPStan for static analysis, PHP CodeSniffer for style consistency, and PHPUnit for feature/unit tests. These run in CI/CD so no broken code can merge. I also enforce PR reviews — at least one approval before merge. These practices actually speed up delivery by catching bugs early.'],
                 ],
             ],
+            'recruiter_review' => [
+                'overall_score' => 88,
+                'strengths' => ['Strong Laravel and PHP fundamentals', 'Leadership experience'],
+                'weaknesses' => ['Lacks container orchestration (Kubernetes) experience'],
+                'red_flags' => [],
+                'ats_pass_probability' => 90,
+                'summary' => 'Solid candidate for the senior backend role, though they may need onboarding for our Kubernetes stack.'
+            ],
+            'integrity_flags' => [
+                'unsupported_skills' => [],
+                'experience_inconsistencies' => [],
+                'hallucination_warnings' => []
+            ],
+        ];
+    }
+
+    private function mockJobDiscovery(): array
+    {
+        return [
+            [
+                'id' => 'mock-job-1',
+                'title' => 'Senior Backend Engineer (Laravel)',
+                'company' => 'TechCorp Philippines',
+                'location' => 'Remote / Manila',
+                'salary' => '₱100,000 - ₱150,000/month',
+                'match_score' => 92,
+                'ats_compatibility' => 88,
+                'required_skills' => ['PHP', 'Laravel', 'MySQL', 'Docker'],
+                'missing_skills' => ['AWS', 'Kubernetes'],
+                'source' => 'LinkedIn',
+                'apply_url' => 'https://linkedin.com/jobs/view/12345'
+            ],
+            [
+                'id' => 'mock-job-2',
+                'title' => 'Full-Stack Developer (Vue.js + Laravel)',
+                'company' => 'StartupXYZ',
+                'location' => 'Cebu City (Hybrid)',
+                'salary' => '₱80,000 - ₱120,000/month',
+                'match_score' => 85,
+                'ats_compatibility' => 82,
+                'required_skills' => ['PHP', 'Laravel', 'Vue.js', 'JavaScript'],
+                'missing_skills' => ['TypeScript', 'GraphQL'],
+                'source' => 'Indeed',
+                'apply_url' => 'https://indeed.com/jobs/view/67890'
+            ]
+        ];
+    }
+
+    private function mockRecruiterScreening(): array
+    {
+        return [
+            'candidates' => [
+                [
+                    'name' => 'John Doe',
+                    'rank' => 1,
+                    'match_score' => 92,
+                    'breakdown' => [
+                        'skills' => 'Excellent match. Hits all required technologies.',
+                        'experience' => '5 years experience perfectly aligns with requirements.',
+                    ],
+                ],
+                [
+                    'name' => 'Jane Smith',
+                    'rank' => 2,
+                    'match_score' => 85,
+                    'breakdown' => [
+                        'skills' => 'Good match. Missing AWS experience.',
+                        'experience' => 'Mid-level experience, slightly below senior requirements.',
+                    ],
+                ],
+            ],
+            'summary' => 'John Doe is the top candidate with a 92% match score. Both candidates show strong PHP and Laravel fundamentals.'
+        ];
+    }
+
+    private function mockExtensionAnalysis(): array
+    {
+        return [
+            'match_score' => 87,
+            'keywords' => ['Laravel', 'PHP', 'Backend', 'API', 'Vue.js', 'Docker', 'AWS'],
+            'summary' => 'Strong match for your background. This role heavily relies on Laravel and API development which aligns with your experience. You might want to brush up on Docker and AWS before the interview.',
+            'missing_skills' => ['Docker', 'AWS']
         ];
     }
 }
+
